@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUPA Sistēma v10 (Dinamiskie paziņojumi)</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/lv.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MUPA">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a202c">
+    
+    <link rel="apple-touch-icon" href="MUPA_logo_web.png">
+    <link rel="icon" type="image/png" href="MUPA_logo_web.png">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 400px; margin: 20px auto; }
+        h2 { text-align: center; color: #1a202c; margin-top: 0; }
+        h3 { color: #4a5568; text-align: center; margin-bottom: 20px; }
+.main-logo {
+    max-width: 100%;
+    height: auto;
+    max-height: 100px; /* Šo ciparu varēsi mainīt, ja logo liksies par mazu vai lielu */
+    display: block;
+    margin: 0 auto 15px auto; /* Iecentrē logo pa vidu */
+}
+        
+        .action-btn { width: 100%; padding: 16px; border-radius: 8px; border: none; color: white; font-weight: bold; font-size: 16px; margin-top: 12px; cursor: pointer; transition: 0.2s; }
+        .action-btn:active { transform: scale(0.96); } /* Poga iespiežas uz iekšu, kad to nospiež */
+        .action-btn:disabled { background: #cbd5e0 !important; color: #718096 !important; cursor: not-allowed; transform: none; } /* Poga paliek pelēka un bloķēta ielādes laikā */
+	/* Pogu dizains (Dienas režīms) */
+        .btn-green { background: #1a202c; color: white; } /* Eleganti melns */
+        .btn-red { background: #9b2c2c; color: white; } /* Dziļi bordo/sarkans */
+        .btn-briv { background: #4a5568; color: white; } /* Tumši pelēks */
+
+        /* Pogu dizains (Nakts/Tumšais režīms) */
+        body.dark-mode .btn-green { background: #f7fafc; color: #1a202c; } /* Naktī poga kļūst balta ar melnu tekstu */
+        body.dark-mode .btn-red { background: #c53030; color: white; }
+        body.dark-mode .btn-briv { background: #718096; color: white; }
+        .btn-logout { background: #a0aec0; margin-top: 25px; padding: 12px; }
+        .back-btn { background: #718096; width: 100%; padding: 12px; border: none; color: white; margin-top: 15px; border-radius: 8px; cursor: pointer;}
+        
+        select, input[type="text"], input[type="password"] { width: 100%; padding: 14px; margin: 10px 0 20px 0; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px; box-sizing: border-box; outline: none; }
+        select:focus, input:focus { border-color: #4299e1; }
+        
+        .hidden { display: none; }
+        .flatpickr-day.booked-by-me { background-color: #4299e1 !important; border-color: #4299e1 !important; color: white !important; font-weight: bold; }
+        .color-dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; }
+        .booked-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+        .cancel-btn { background: #fc8181; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .locked-status { color: #38a169; font-size: 14px; font-weight: bold; }
+        
+        #realtime-clock { font-size: 42px; font-weight: bold; text-align: center; color: #2b6cb0; margin: 10px 0; letter-spacing: 2px; }
+        
+        /* Info sienas stils */
+        .info-wall { background: #ebf8ff; border-left: 5px solid #3182ce; padding: 15px; border-radius: 4px; margin-bottom: 25px; }
+        .info-wall h4 { margin: 0 0 10px 0; color: #2b6cb0; }
+        .info-wall ul { margin: 0; padding-left: 20px; font-size: 14px; color: #2d3748; }
+        
+        /* Nakts čeklistes stils */
+        .checklist-box { background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left; }
+        .checklist-box p { font-weight: bold; color: #c53030; margin-top: 0; margin-bottom: 10px; }
+        .checklist-box label { display: block; margin-bottom: 10px; font-size: 14px; color: #4a5568; cursor: pointer; }
+        .checklist-box input[type="checkbox"] { transform: scale(1.3); margin-right: 10px; }
+	
+	/* Live Tablo stils */
+        .active-workers-box { background: #e6fffa; border-left: 5px solid #38a169; padding: 15px; border-radius: 4px; margin-bottom: 25px; }
+        .active-workers-box h4 { margin: 0 0 10px 0; color: #276749; }
+        .worker-chip { display: inline-block; background: #c6f6d5; color: #22543d; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; margin: 0 5px 5px 0; }
+        .worker-chip i { color: #38a169; margin-right: 5px; }
+        
+        /* Live Tablo Tumšajam režīmam (Iekopē šīs 3 rindas pie dark-mode kodiem) */
+        body.dark-mode .active-workers-box { background: #22543d; border-left-color: #48bb78; }
+        body.dark-mode .active-workers-box h4 { color: #9ae6b4; }
+        body.dark-mode .worker-chip { background: #276749; color: #c6f6d5; }
+	
+	/* =========================================
+           TUMŠAIS REŽĪMS (DARK MODE)
+           ========================================= */
+        body.dark-mode { background: #1a202c; color: #e2e8f0; }
+        body.dark-mode .card { background: #2d3748; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        body.dark-mode h2 { color: #f7fafc; }
+        body.dark-mode h3 { color: #cbd5e0; }
+        body.dark-mode p { color: #a0aec0 !important; }
+        
+        /* Ievades lauki un izvēlnes */
+        body.dark-mode select, body.dark-mode input[type="text"], body.dark-mode input[type="password"] { 
+            background: #4a5568; 
+            color: #f7fafc; 
+            border-color: #4a5568; 
+        }
+        body.dark-mode select:focus, body.dark-mode input:focus { border-color: #63b3ed; }
+        
+        /* Info siena */
+        body.dark-mode .info-wall { background: #384357; border-left-color: #63b3ed; }
+        body.dark-mode .info-wall h4 { color: #90cdf4; }
+        body.dark-mode .info-wall ul { color: #e2e8f0; }
+        
+        /* Nakts čekliste */
+        body.dark-mode .checklist-box { background: #742a2a; border-color: #f56565; }
+        body.dark-mode .checklist-box p { color: #feb2b2; }
+        body.dark-mode .checklist-box label { color: #fbd38d; }
+        
+        /* Līnijas un saraksti */
+        body.dark-mode hr { border-top-color: #4a5568 !important; }
+        body.dark-mode .booked-list-item { border-bottom-color: #4a5568; }
+        body.dark-mode .booked-list-item span { color: #e2e8f0 !important; }
+        body.dark-mode .back-btn { background: #4a5568; color: #e2e8f0; }
+        body.dark-mode #realtime-clock { color: #63b3ed; }
+	body.dark-mode .main-logo { filter: invert(1) brightness(2); }
+	body.dark-mode #hours-list-container div { border-bottom-color: #4a5568 !important; })
+    </style>
+</head>
+<body>
+
+<!-- 1. IDENTIFIKĀCIJAS EKRĀNS -->
+<div class="card" id="login-screen">
+    <h2><img src="MUPA_logo_web.png" alt="MUPA Logo" class="main-logo"></h2>
+    <p style="text-align:center; color:#718096; margin-bottom:20px;">Lūdzu, izvēlies savu vārdu un ievadi PIN.</p>
+    <select id="user-select"><option value="">-- Izvēlies vārdu --</option></select>
+    <input type="password" id="user-pin" inputmode="numeric" maxlength="4" placeholder="Ievadi 4 ciparu PIN kodu">
+    <button class="action-btn btn-green" id="login-btn" onclick="login()">Pieslēgties</button>
+    <p id="login-status" style="text-align:center; font-weight:bold; margin-top:15px; font-size:14px;"></p>
+</div>
+
+<!-- 2. DARBINIEKA GALVENĀ IZVĒLNE -->
+<div class="card hidden" id="dashboard-screen">
+    
+    <!-- INFO SIENA / PAZIŅOJUMI (Dinamiska) -->
+    <div class="info-wall" id="info-wall-container">
+        <h4><i class="fas fa-thumbtack" style="margin-right: 8px;"></i> Aktuālie paziņojumi</h4>
+        <ul id="info-wall-list">
+            <li>Ielādē paziņojumus...</li>
+        </ul>
+    </div>
+	<!-- LIVE TABLO: Kurš strādā -->
+    <div class="active-workers-box" id="active-workers-container">
+        <h4><i class="fas fa-users" style="margin-right: 8px;"></i> Šobrīd maiņā:</h4>
+        <div id="active-workers-list">
+            <span style="font-size: 13px; color: #718096;">Ielādē datus...</span>
+        </div>
+    </div>
+
+    <h2 id="welcome-text" style="margin-bottom: 20px;">Sveiki!</h2>
+    
+    <!-- MAIŅU POGAS -->
+    <div id="shift-actions" class="hidden">
+        <h3><i class="fas fa-hourglass-half" style="margin-right: 8px;"></i> Darba laiks</h3>
+        <button class="action-btn btn-green" onclick="checkLocationAndStartShift()"><i class="fas fa-location-dot" style="margin-right: 8px;"></i> Sākt maiņu (GPS)</button>
+        <button class="action-btn btn-red" onclick="openShiftComment('Beigt maiņu')"><i class="fas fa-stop" style="margin-right: 8px;"></i> Beigt maiņu</button>
+        <hr style="border:0; border-top:1px solid #e2e8f0; margin: 25px 0;">
+    </div>
+    
+    <button class="action-btn btn-briv" onclick="openBrivdienas()"><i class="fas fa-calendar-days" style="margin-right: 8px;"></i> Pieteikt / Atcelt Brīvdienas</button>
+    <button class="action-btn" style="background: #2b6cb0; color: white;" onclick="openMyHours()"><i class="fas fa-chart-pie" style="margin-right: 8px;"></i> Mana statistika (Maiņas)</button>
+    <button class="action-btn btn-logout" onclick="logout()"><i class="fas fa-right-from-bracket" style="margin-right: 8px;"></i> Mainīt lietotāju (Iziet)</button>
+</div>
+
+<!-- 3. MAIŅAS KOMENTĀRS AR PULKSTENI UN ČEKLISTI -->
+<div class="card hidden" id="shift-comment-screen">
+    <h2 id="shift-comment-title">⏱️ Maiņas reģistrācija</h2>
+    
+    <div id="realtime-clock">--:--</div>
+    <p id="location-status" style="text-align:center; font-size:13px; color:#38a169; font-weight:bold; margin-top:0;"></p>
+    
+    <p style="text-align:center; color:#718096; font-size:14px;">Ja atzīmējies vēlāk, ieraksti zemāk reālo laiku. <br><i>(Ja viss precīzi, atstāj tukšu)</i>.</p>
+    <input type="text" id="shift-comment" placeholder="Komentārs (piem. reāli beidzu 23:45)">
+    
+    <!-- NAKTS KONTROLSARAKSTS -->
+    <div id="night-checklist" class="checklist-box hidden">
+        <p><i class="fas fa-triangle-exclamation" style="margin-right: 8px;"></i> Nakts slēgšanas atgādinājumi:</p>
+        <label><input type="checkbox" id="check-kresli"> Vai sanesi visus koka krēslus iekštelpās?</label>
+        <label><input type="checkbox" id="check-glazes"> Vai esi pārmeklējis Veldzes teritorijā tukšās glāzes?</label>
+	<label><input type="checkbox" id="check-signalizacija"> Ieslēdz Signalizāciju</label>
+    </div>
+
+    <button class="action-btn btn-green" id="confirm-shift-btn" onclick="confirmShift()">Apstiprināt</button>
+    <button class="back-btn" onclick="showDashboard()">Atpakaļ</button>
+</div>
+
+<!-- 4. BRĪVDIENU EKRĀNS -->
+<div class="card hidden" id="brivdienas-screen">
+    <h2><i class="fas fa-calendar-check" style="margin-right: 10px;"></i> Brīvdienas</h2>
+    <p id="briv-status" style="font-size:14px; color:#666; font-weight:bold; text-align:center;"></p>
+    
+    <div id="calendar-container" class="hidden">
+        <input type="text" id="date-briv" placeholder="Spied šeit, lai pieteiktu jaunas">
+        <div style="margin-top:10px; font-size: 13px; color: #444;">
+            <div style="margin-bottom: 5px;"><span class="color-dot" style="background:#4299e1;"></span> Tavas pieteiktās dienas</div>
+            <div style="margin-bottom: 5px;"><span class="color-dot" style="background:#e6e6e6;"></span> Pilnās dienas bāram (Nobloķētas)</div>
+        </div>
+        <button class="action-btn btn-briv" onclick="sendBriv()">Pieteikt iezīmētās dienas</button>
+        
+        <div style="margin-top: 30px;">
+            <h4 style="margin-bottom: 10px; color: #2d3748; text-align: center;">Tavi aktīvie nākotnes pieteikumi:</h4>
+            <div id="my-booked-list"></div>
+        </div>
+    </div>
+    <button class="back-btn" onclick="showDashboard()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Atpakaļ</button>
+</div>
+<div class="card hidden" id="my-hours-screen">
+    <h2><i class="fas fa-chart-pie" style="margin-right: 10px;"></i> Mana Statistika</h2>
+
+<!-- 5. MANAS STUNDAS EKRĀNS -->    
+    <div class="info-wall" style="text-align:center; padding: 10px;">
+        <h3 id="hours-total-text" style="margin:0;">Ielādē datus...</h3>
+        <p id="hours-sub-text" style="margin:5px 0 0 0; font-size:13px;"></p>
+    </div>
+    
+    <div id="hours-list-container" style="max-height: 320px; overflow-y: auto; margin-top: 15px; padding-right: 5px;">
+        </div>
+    
+    <button class="back-btn" onclick="showDashboard()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Atpakaļ</button>
+</div>
+<script>
+    // ==========================================
+    // 1. TAVI GALVENIE IESTATĪJUMI
+    // ==========================================
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbxZkyMpvTIp2zZzBYyY00WJVvOqa6WtLQvEnw21aQHN2xTmzaMDmd__rWSPQiKuwwE/exec";
+    
+    // IEVADI SAVA BĀRA PRECIZAS KOORDINĀTAS (No Google Maps):
+    const BAR_LAT = 56.958376; // Platums
+    const BAR_LNG = 24.129582; // Garums
+    const MAX_RADIUS = 50;  // Metri
+
+    const barsNames = ["Kalvis", "Sabīne", "Lība", "Keita", "Paula", "Paula M", "Jurģis", "Marta", "Sabīne B"];
+    const virtuveNames = ["Ieva", "Agita", "Elizabete", "Šarlote", "Madara"];
+    const allNames = [...barsNames, ...virtuveNames].sort();
+    
+    let currentUser = "";
+    let pendingShiftAction = "";
+
+    const select = document.getElementById('user-select');
+    allNames.forEach(n => { let o = document.createElement("option"); o.value = n; o.text = n; select.add(o); });
+
+    window.onload = function() {
+        const savedUser = localStorage.getItem('mupa_user');
+        if (savedUser && allNames.includes(savedUser)) {
+            currentUser = savedUser;
+            setupDashboard();
+        } else {
+            showScreen('login-screen');
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+    };
+
+    function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('realtime-clock').innerText = hours + ":" + minutes;
+        
+        // Tumšā režīma pārbaude (No 20:00 līdz 06:59 rāda tumšo dizainu)
+        const currentHour = now.getHours();
+        if (currentHour >= 20 || currentHour < 7) {
+            document.body.classList.add("dark-mode");
+        } else {
+            document.body.classList.remove("dark-mode");
+        }
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function login() {
+        const selected = document.getElementById('user-select').value;
+        const pin = document.getElementById('user-pin').value;
+        const statusEl = document.getElementById('login-status');
+        if (!selected) return alert("Lūdzu, izvēlies savu vārdu!");
+        if (!pin) return alert("Lūdzu, ievadi PIN kodu!");
+
+        statusEl.style.color = "#4299e1";
+        statusEl.innerText = "Pārbauda kodu, lūdzu uzgaidi...";
+
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "verify_pin", name: selected, pin: pin })
+        }).then(res => res.json()).then(res => {
+            if (res.status === "ok") {
+                statusEl.innerText = "";
+                currentUser = selected;
+                localStorage.setItem('mupa_user', currentUser);
+                setupDashboard();
+            } else {
+                statusEl.style.color = "#e53e3e";
+                statusEl.innerText = res.msg;
+            }
+        }).catch(err => {
+            statusEl.style.color = "#e53e3e";
+            statusEl.innerText = "Kļūda savienojumā ar serveri!";
+        });
+    }
+
+    function logout() {
+        currentUser = "";
+        localStorage.removeItem('mupa_user');
+        document.getElementById('user-select').selectedIndex = 0;
+        document.getElementById('user-pin').value = "";
+        document.getElementById('login-status').innerText = "";
+        showScreen('login-screen');
+    }
+
+    // --- IELĀDĒ PAZIŅOJUMUS NO GOOGLE TABULAS ---
+    function loadInfoWall() {
+        const list = document.getElementById('info-wall-list');
+        list.innerHTML = "<li>Ielādē paziņojumus...</li>";
+        
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "get_info" })
+        }).then(res => res.json()).then(res => {
+            if (res.status === "ok" && res.data.length > 0) {
+                list.innerHTML = "";
+                res.data.forEach(msg => {
+                    let li = document.createElement("li");
+                    li.innerText = msg;
+                    list.appendChild(li);
+                });
+            } else {
+                list.innerHTML = "<li>Šobrīd jaunu paziņojumu nav.</li>";
+            }
+        }).catch(err => {
+            list.innerHTML = "<li>Neizdevās ielādēt paziņojumus.</li>";
+        });
+    }
+
+    function setupDashboard() {
+        document.getElementById('welcome-text').innerText = "Sveiki, " + currentUser + "!";
+        document.getElementById('shift-actions').classList.add('hidden');
+        
+        if (currentUser !== "Kalvis") {
+            document.getElementById('shift-actions').classList.remove('hidden');
+        }
+        
+        // Ielādē paziņojumus katru reizi, kad nonāk sākuma ekrānā
+        loadInfoWall();
+        loadActiveWorkers(); 
+        showScreen('dashboard-screen');
+    }
+
+    function loadActiveWorkers() {
+        const list = document.getElementById('active-workers-list');
+        list.innerHTML = '<span style="font-size: 13px; color: #718096;">Ielādē datus...</span>';
+        
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "get_active" })
+        }).then(res => res.json()).then(res => {
+            if (res.status === "ok" && res.data.length > 0) {
+                list.innerHTML = "";
+                res.data.forEach(name => {
+                    let chip = document.createElement("span");
+                    chip.className = "worker-chip";
+                    chip.innerHTML = '<i class="fas fa-circle" style="font-size:10px;"></i> ' + name;
+                    list.appendChild(chip);
+                });
+            } else {
+                list.innerHTML = '<span style="font-size: 13px; color: #a0aec0;">Šobrīd neviens nav atzīmējies.</span>';
+            }
+        }).catch(err => {
+            list.innerHTML = '<span style="font-size: 13px; color: #e53e3e;">Neizdevās ielādēt.</span>';
+        });
+    }
+
+    function showDashboard() { showScreen('dashboard-screen'); }
+
+    // --- ĢEOLOKĀCIJA ---
+    function checkLocationAndStartShift() {
+        if (!navigator.geolocation) {
+            alert("Tava ierīce vai pārlūks neatbalsta lokācijas noteikšanu!");
+            return;
+        }
+
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = "📍 Meklē lokāciju...";
+        btn.disabled = true;
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+                
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const R = 6371e3; 
+                const φ1 = BAR_LAT * Math.PI/180;
+                const φ2 = lat * Math.PI/180;
+                const Δφ = (lat-BAR_LAT) * Math.PI/180;
+                const Δλ = (lng-BAR_LNG) * Math.PI/180;
+                const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                const distance = R * c; 
+
+                if (distance <= MAX_RADIUS) {
+                    document.getElementById('location-status').innerText = "📍 Lokācija apstiprināta";
+                    openShiftComment("Sākt maiņu");
+                } else {
+                    alert(`Sorrrry... mēģini vēreiz, kad būsi mājiņā!\n\nAttālums: ~${Math.round(distance)} metri.\nLūdzu, atzīmējies tikai tad, kad esi ieradies/usies darba vietā.`);
+                }
+            },
+            (error) => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+                alert("Lai sāktu maiņu, tev ir JĀATĻAUJ telefonam noteikt lokāciju, kad pārlūkprogramma to prasa!");
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }
+
+    // --- MAIŅU BEIGŠANA UN ČEKLISTE ---
+    function openShiftComment(action) {
+        pendingShiftAction = action;
+        document.getElementById('shift-comment').value = ""; 
+        document.getElementById('shift-comment-title').innerText = "⏱️ " + action;
+        
+        if(action !== "Sākt maiņu") document.getElementById('location-status').innerText = "";
+        
+        const confirmBtn = document.getElementById('confirm-shift-btn');
+        const checklist = document.getElementById('night-checklist');
+        const hour = new Date().getHours();
+        
+        checklist.classList.add('hidden');
+        document.getElementById('check-kresli').checked = false;
+        document.getElementById('check-glazes').checked = false;
+	document.getElementById('check-signalizacija').checked = false;
+        
+        confirmBtn.innerText = "Apstiprināt un " + action.toLowerCase();
+        
+        if (action === "Sākt maiņu") {
+            confirmBtn.className = "action-btn btn-green";
+            document.getElementById('shift-comment').placeholder = "Piemēram: Reāli sāku 16:30";
+        } else {
+            confirmBtn.className = "action-btn btn-red";
+            document.getElementById('shift-comment').placeholder = "Piemēram: Reāli beidzu 23:45";
+            if (hour >= 23 || hour < 6) checklist.classList.remove('hidden');
+        }
+        
+        showScreen('shift-comment-screen');
+    }
+
+    function confirmShift() {
+        const hour = new Date().getHours();
+        if (pendingShiftAction === "Beigt maiņu" && (hour >= 23 || hour < 6)) {
+            const kresliOK = document.getElementById('check-kresli').checked;
+            const glazesOK = document.getElementById('check-glazes').checked;
+            const signalizacijaOK = document.getElementById('check-signalizacija').checked;
+            
+            if (!kresliOK || !glazesOK || !signalizacijaOK) {
+                alert("⚠️ Lūdzu, atzīmē VISUS nakts kontroles punktus pirms beidz maiņu!");
+                return;
+            }
+        }
+
+        // NOBLOĶĒ POGU UN NOMAINI TEKSTU
+        const confirmBtn = document.getElementById('confirm-shift-btn');
+        const originalText = confirmBtn.innerText;
+        confirmBtn.innerText = "⏳ Saglabā...";
+        confirmBtn.disabled = true;
+
+        const comment = document.getElementById('shift-comment').value.trim();
+        const time = new Date().toLocaleString("lv-LV");
+        const autoSheet = barsNames.includes(currentUser) ? "Bars" : "Virtuve";
+        
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "maiņa", sheet: autoSheet, row: [currentUser, time, pendingShiftAction, comment] })
+        }).then(() => {
+            alert("✅ " + pendingShiftAction + " veiksmīgi reģistrēta!");
+            
+            // ATBLOĶĒ POGU UN ATGRIEŽ UZ SĀKUMU
+            confirmBtn.innerText = originalText;
+            confirmBtn.disabled = false;
+            showDashboard();
+            
+        }).catch(() => {
+            alert("Kļūda saglabājot datus. Pārbaudi internetu.");
+            
+            // JA IR KĻŪDA, ATBLOĶĒ POGU, LAI VAR MĒĢINĀT VĒLREIZ
+            confirmBtn.innerText = originalText;
+            confirmBtn.disabled = false;
+        });
+    }
+
+    // --- BRĪVDIENAS ---
+    let brivdienasData = [];
+    let fpInstance = null;
+
+    function openBrivdienas() {
+        showScreen('brivdienas-screen');
+        document.getElementById('briv-status').innerText = "Tiek ielādēti dati no tabulas...";
+        document.getElementById('calendar-container').classList.add('hidden');
+        
+        fetch(webAppUrl).then(res => res.json()).then(data => {
+            brivdienasData = data;
+            document.getElementById('briv-status').innerText = "";
+            document.getElementById('calendar-container').classList.remove('hidden');
+            initCalendar();
+        }).catch(err => { document.getElementById('briv-status').innerText = "Neizdevās ielādēt vēsturi."; });
+    }
+
+    function initCalendar() {
+        if(fpInstance) fpInstance.destroy();
+        const isBarEmployee = barsNames.includes(currentUser);
+        const barDateCounts = {};
+        const myDates = []; 
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        
+        brivdienasData.forEach(item => {
+            if(item.nodala === "Bars") barDateCounts[item.datums] = (barDateCounts[item.datums] || 0) + 1;
+            if(item.vards === currentUser) {
+                const itemDate = new Date(item.datums);
+                if (itemDate >= today) myDates.push({ date: item.datums, statuss: item.statuss });
+            }
+        });
+        
+        renderMyBookedList(myDates);
+        const disabledDates = isBarEmployee ? Object.keys(barDateCounts).filter(d => barDateCounts[d] >= 3) : [];
+
+        fpInstance = flatpickr("#date-briv", {
+            mode: "multiple", dateFormat: "Y-m-d", altInput: true, altFormat: "d.m.Y", locale: "lv", disable: disabledDates,
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const formatStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
+                if (myDates.some(m => m.date === formatStr)) dayElem.classList.add("booked-by-me");
+            }
+        });
+    }
+
+    function renderMyBookedList(datesArray) {
+        const listDiv = document.getElementById('my-booked-list');
+        listDiv.innerHTML = '';
+        if (datesArray.length === 0) {
+            listDiv.innerHTML = '<p style="font-size:14px; color:#a0aec0; text-align:center;">Tev pagaidām nav pieteiktu nākotnes brīvdienu.</p>';
+            return;
+        }
+        datesArray.sort((a, b) => a.date.localeCompare(b.date)); 
+        datesArray.forEach(dObj => {
+            const parts = dObj.date.split('-');
+            const displayDate = parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0]}` : dObj.date;
+            const row = document.createElement('div');
+            row.className = 'booked-list-item';
+            
+            if (dObj.statuss !== "") {
+                row.innerHTML = `<span style="font-weight:bold; color:#4a5568;">📅 ${displayDate}</span><span class="locked-status">🔒 Grafikā</span>`;
+            } else {
+                row.innerHTML = `<span style="font-weight:bold; color:#4a5568;">📅 ${displayDate}</span><button class="cancel-btn" onclick="cancelBrivdiena('${dObj.date}')">❌ Atcelt</button>`;
+            }
+            listDiv.appendChild(row);
+        });
+    }
+
+    function sendBriv() {
+        const nodala = barsNames.includes(currentUser) ? "Bars" : "Virtuve";
+        const selectedDates = fpInstance.selectedDates.map(d => fpInstance.formatDate(d, "Y-m-d"));
+        if(selectedDates.length === 0) return alert("Lūdzu, kalendārā atzīmē vismaz vienu jaunu datumu!");
+        
+        document.getElementById('briv-status').innerText = "Saglabā datus...";
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "brivdiena_vairakas", name: currentUser, nodala: nodala, dates: selectedDates })
+        }).then(res => res.json()).then(res => {
+            if(res.atraidits && res.atraidits.length > 0) alert("⚠️ Dažas dienas jau bija pilnas bāra darbiniekiem un netika saglabātas:\n" + res.atraidits.join(", "));
+            else alert("✅ Brīvdienas veiksmīgi reģistrētas!");
+            document.getElementById('date-briv').value = "";
+            openBrivdienas(); 
+        }).catch(err => alert("Kļūda saglabājot datus."));
+    }
+
+    function cancelBrivdiena(dateStr) {
+        const parts = dateStr.split('-');
+        const niceDate = parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0]}` : dateStr;
+        if (!confirm("Vai tiešām vēlies atteikt brīvdienu datumā " + niceDate + "?")) return;
+        document.getElementById('briv-status').innerText = "Atceļ brīvdienu...";
+        
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "atcelt_brivdienu", name: currentUser, date: dateStr })
+        }).then(res => res.json()).then(res => {
+            if (res.status === "error") alert("⚠️ Neizdevās atcelt: " + res.msg);
+            else alert("✅ Brīvdiena veiksmīgi atcelta!");
+            openBrivdienas(); 
+        }).catch(err => alert("Kļūda atceļot datus. Pārbaudi internetu."));
+    }
+function openMyHours() {
+        showScreen('my-hours-screen');
+        document.getElementById('hours-total-text').innerText = "Ielādē datus...";
+        document.getElementById('hours-sub-text').innerText = "";
+        document.getElementById('hours-list-container').innerHTML = "";
+        
+        const nodala = barsNames.includes(currentUser) ? "Bars" : "Virtuve";
+        
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "get_hours", name: currentUser, nodala: nodala })
+        }).then(res => res.text()).then(text => {
+            try {
+                let res = JSON.parse(text);
+                if (res.status === "ok") {
+                    let totalShifts = 0;
+                    let html = "";
+                    let totalMs = 0;
+                    let startTime = null;
+
+                    let chronological = [...res.data].reverse();
+                    chronological.forEach(item => {
+                        let d = new Date(item.laiks);
+                        if (item.darbiba === "Sākt maiņu") {
+                            startTime = d;
+                        } else if (item.darbiba === "Beigt maiņu" && startTime) {
+                            let endTime = d;
+                            if (!isNaN(startTime) && !isNaN(endTime)) {
+                                totalMs += (endTime - startTime);
+                            }
+                            startTime = null; 
+                        }
+                    });
+
+                    let totalHours = (totalMs / (1000 * 60 * 60)).toFixed(1);
+
+                    res.data.forEach(item => {
+                        let isStart = item.darbiba === "Sākt maiņu";
+                        let icon = isStart ? "<span style='color:#38a169;'><i class='fas fa-arrow-right-to-bracket'></i></span>" : "<span style='color:#e53e3e;'><i class='fas fa-arrow-right-from-bracket'></i></span>";
+                        if(isStart) totalShifts++;
+
+                        let displayTime = item.laiks;
+                        let d = new Date(item.laiks);
+                        if (!isNaN(d)) {
+                            let dd = String(d.getDate()).padStart(2, '0');
+                            let mm = String(d.getMonth() + 1).padStart(2, '0');
+                            let yyyy = d.getFullYear();
+                            let hh = String(d.getHours()).padStart(2, '0');
+                            let min = String(d.getMinutes()).padStart(2, '0');
+                            displayTime = `${dd}.${mm}.${yyyy} ${hh}:${min}`;
+                        } else {
+                            displayTime = item.laiks.split(" GMT")[0];
+                        }
+                        
+                        html += `<div style="border-bottom:1px solid #e2e8f0; padding:12px 0; font-size:14px;">
+                            <strong>${icon} ${item.darbiba}</strong><br>
+                            <span style="color:#718096; font-size: 13px;"><i class="far fa-clock"></i> ${displayTime}</span>
+                            ${item.komentars ? `<br><i style="color:#a0aec0; font-size:12px;">"${item.komentars}"</i>` : ''}
+                        </div>`;
+                    });
+                    
+                    document.getElementById('hours-list-container').innerHTML = html || "<p style='text-align:center; color:#a0aec0;'>Nav atrasti ieraksti.</p>";
+                    document.getElementById('hours-total-text').innerHTML = `<span style="font-size:36px; font-weight:bold;">~${totalHours}</span> <span style="font-size:16px;">h</span>`;
+                    document.getElementById('hours-sub-text').innerText = `(Aptuvenais laiks no pēdējām ${totalShifts} maiņām)`;
+                } else {
+                    document.getElementById('hours-total-text').innerText = "Kļūda datubāzē";
+                    alert("Kļūda no tabulas: " + res.msg);
+                }
+            } catch (e) {
+                document.getElementById('hours-total-text').innerText = "Kļūda nolasot";
+                alert("⚠️ Izskatās, ka tu aizmirsi pārkopēt jauno saiti! Lūdzu, Google Script logā uztaisi New Deployment un iekopē jauno saiti sava HTML faila sākumā.");
+            }
+        }).catch(err => {
+            document.getElementById('hours-total-text').innerText = "Kļūda savienojumā";
+            alert("Savienojuma kļūda: " + err.message);
+        });
+    }
+</script>
+
+</body>
+</html>
