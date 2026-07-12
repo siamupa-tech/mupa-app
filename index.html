@@ -140,7 +140,7 @@
 <!-- 2. DARBINIEKA GALVENĀ IZVĒLNE -->
 <div class="card hidden" id="dashboard-screen">
     
-    <!-- INFO SIENA / PAZIŅOJUMI (Dinamiska) -->
+<!-- INFO SIENA / PAZIŅOJUMI (Dinamiska) -->
     <div class="info-wall" id="info-wall-container">
         <h4><i class="fas fa-thumbtack" style="margin-right: 8px;"></i> Aktuālie paziņojumi</h4>
         <ul id="info-wall-list">
@@ -170,9 +170,12 @@
     <button class="action-btn" style="background: #3182ce; color: white;" onclick="openMySchedule()"><i class="far fa-calendar-alt" style="margin-right: 8px;"></i> Mans grafiks</button>
     
     <button class="action-btn btn-briv" onclick="openBrivdienas()"><i class="fas fa-calendar-days" style="margin-right: 8px;"></i> Pieteikt / Atcelt Brīvdienas</button>
+    <button class="action-btn" style="background: #805ad5; color: white;" onclick="openMessageScreen()"><i class="fas fa-envelope" style="margin-right: 8px;"></i> Ziņa vadītājam</button>
+    <button class="action-btn" style="background: #ed8936; color: white;" onclick="openInstructions()"><i class="fas fa-book" style="margin-right: 8px;"></i> Dokumenti un Receptes</button>
     <button class="action-btn btn-logout" onclick="logout()"><i class="fas fa-right-from-bracket" style="margin-right: 8px;"></i> Mainīt lietotāju (Iziet)</button>
 </div>
 
+<!-- 3. MAIŅAS KOMENTĀRS AR PULKSTENI UN ČEKLISTI -->
 <!-- 3. MAIŅAS KOMENTĀRS AR PULKSTENI UN ČEKLISTI -->
 <div class="card hidden" id="shift-comment-screen">
     <h2 id="shift-comment-title">⏱️ Maiņas reģistrācija</h2>
@@ -188,11 +191,11 @@
         <p><i class="fas fa-triangle-exclamation" style="margin-right: 8px;"></i> Nakts slēgšanas atgādinājumi:</p>
         <label><input type="checkbox" id="check-kresli"> Vai sanesi visus koka krēslus iekštelpās?</label>
         <label><input type="checkbox" id="check-glazes"> Vai esi pārmeklējis Veldzes teritorijā tukšās glāzes?</label>
-	<label><input type="checkbox" id="check-signalizacija"> Ieslēdz Signalizāciju</label>
+        <label><input type="checkbox" id="check-signalizacija"> Ieslēdz Signalizāciju</label>
     </div>
 
     <button class="action-btn btn-green" id="confirm-shift-btn" onclick="confirmShift()">Apstiprināt</button>
-    <button class="back-btn" onclick="showDashboard()">Atpakaļ</button>
+    <button class="back-btn" onclick="showDashboard()">Atcelt</button>
 </div>
 
 <!-- 4. BRĪVDIENU EKRĀNS -->
@@ -247,14 +250,30 @@
         <textarea id="new-announcement" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ecc94b; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; box-sizing: border-box;" placeholder="Ieraksti tekstu, kas uzreiz parādīsies visu darbinieku ekrānos..."></textarea>
         <button class="action-btn" style="background: #d69e2e; color: white; margin-top: 10px; padding: 12px;" onclick="sendAnnouncement()">Publicēt ziņu</button>
     </div>
+
     <hr style="border:0; border-top:1px solid #e2e8f0; margin: 25px 0;">
     <h3 style="color:#2d3748; margin-bottom:15px; font-size: 18px;"><i class="fas fa-list-check" style="margin-right: 8px;"></i> Darbinieku vēsture</h3>
-    
     <button class="action-btn" style="background:#4a5568; color:white; padding:12px; font-size:15px;" onclick="loadAllEmployeesHours()"><i class="fas fa-rotate" style="margin-right: 8px;"></i> Ielādēt pēdējās darbības</button>
-    
     <div id="all-employees-list" style="max-height: 350px; overflow-y: auto; margin-top: 15px; padding-right: 5px; text-align:left;">
         <!-- Šeit parādīsies visu darbinieku saraksts -->
     </div>
+
+    <hr style="border:0; border-top:1px solid #e2e8f0; margin: 25px 0;">
+    <h3 style="color:#2d3748; margin-bottom:15px; font-size: 18px;"><i class="fas fa-envelope-open-text" style="margin-right: 8px;"></i> Iesūtītās ziņas no komandas</h3>
+    <button class="action-btn" style="background:#805ad5; color:white; padding:12px; font-size:15px;" onclick="loadAdminMessages(this)"><i class="fas fa-inbox" style="margin-right: 8px;"></i> Ielādēt ziņas</button>
+    <div id="admin-messages-list" style="max-height: 250px; overflow-y: auto; margin-top: 15px; padding-right: 5px; text-align:left;">
+        <!-- Šeit parādīsies privātās ziņas -->
+    </div>
+
+    <hr style="border:0; border-top:1px solid #e2e8f0; margin: 25px 0;">
+    <h3 style="color:#2d3748; margin-bottom:15px; font-size: 18px;"><i class="fas fa-calendar-alt" style="margin-right: 8px; color: #3182ce;"></i> Komandas atpūtas dienas</h3>
+    <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+        <input type="text" id="admin-briv-calendar" class="hidden">
+        <div id="admin-briv-details" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e0; font-size: 14px; color: #4a5568; min-height: 40px; text-align: center;">
+            <em>Ielādē datus...</em>
+        </div>
+    </div>
+
     <button class="back-btn" onclick="showDashboard()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Atpakaļ</button>
 </div>
 <!-- 7. MANS GRAFIKS EKRĀNS -->
@@ -268,16 +287,39 @@
     
     <button class="back-btn" onclick="showDashboard()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Atpakaļ</button>
 </div>
+<!-- 8. ZIŅAS RAKSTĪŠANAS EKRĀNS -->
+<div class="card hidden" id="message-screen">
+    <h2><i class="fas fa-envelope" style="margin-right: 10px; color: #805ad5;"></i> Ziņa vadītājam</h2>
+    <button class="action-btn" style="background: #ed8936; color: white;" onclick="openInstructions()"><i class="fas fa-book" style="margin-right: 8px;"></i> Dokumenti un Receptes</button>
+    <p style="text-align:center; color:#718096; font-size:14px; margin-bottom:20px;">Šo ziņu redzēs tikai vadītāji savā panelī.</p>
+    
+    <textarea id="private-message-text" rows="4" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; resize: none; font-family: inherit; font-size: 14px; box-sizing: border-box;" placeholder="Ieraksti savu ziņu šeit..."></textarea>
+    
+    <button class="action-btn" style="background: #805ad5; color: white; margin-top: 15px;" onclick="sendMessageToAdmin(this)">Nosūtīt ziņu</button>
+    <button class="back-btn" onclick="showDashboard()">Atpakaļ</button>
+</div>
+
+<!-- 9. DOKUMENTI UN INSTRUKCIJAS -->
+<div class="card hidden" id="instructions-screen">
+    <h2><i class="fas fa-book-open" style="margin-right: 10px; color: #ed8936;"></i> Dokumenti</h2>
+    <p style="text-align:center; color:#718096; font-size:14px; margin-bottom:20px;">Svarīgākā informācija vienmēr pa rokai.</p>
+    
+    <div id="instructions-list" style="max-height: 400px; overflow-y: auto; margin-top: 15px; padding-right: 5px; text-align:left;">
+        </div>
+    
+    <button class="back-btn" onclick="showDashboard()">Atpakaļ</button>
+</div>
 <script>
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbz4XrUmgwKiTPHR2v8DSEL0QWDWbmp7_j2TVpDxzgGqeLbdGcjB_mnypB7u0Myc0R4/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbzo5Vlzq5eKKt_orwwwSCoEfLCZLX1OxIbO7EeG_AgbInb9uLzrNAElyc88_btd0NA/exec";
     
-    // IEVADI SAVA BĀRA PRECIZAS KOORDINĀTAS (No Google Maps):
-    const BAR_LAT = 56.958376; // Platums
-    const BAR_LNG = 24.129582; // Garums
-    const MAX_RADIUS = 50;  // Metri
+    // IEVADI SAVU BĀRU KOORDINĀTAS (Veldze jau ir precīza, Alus Muižu pielabosi, ja vajadzēs):
+    const BARS = [
+        { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 }, // Matīsa 8 (Veldze)
+        { name: "Alus Muiža", lat: 56.953610, lng: 24.128710, radius: 50 } // ~Ģertrūdes 45
+    ];
 
     const adminNames = ["Kaspars", "Daumants", "Baiba"]; // Šeit ieraksti īstos vadītāju vārdus!
     const barsNames = ["Kalvis", "Sabīne", "Lība", "Keita", "Paula", "Paula R", "Jurģis", "Marta", "Sabīne B"];
@@ -288,6 +330,7 @@
     
     let currentUser = "";
     let pendingShiftAction = "";
+    let detectedBarName = "";
 
     const select = document.getElementById('user-select');
     allNames.forEach(n => { let o = document.createElement("option"); o.value = n; o.text = n; select.add(o); });
@@ -451,19 +494,33 @@
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
                 const R = 6371e3; 
-                const φ1 = BAR_LAT * Math.PI/180;
-                const φ2 = lat * Math.PI/180;
-                const Δφ = (lat-BAR_LAT) * Math.PI/180;
-                const Δλ = (lng-BAR_LNG) * Math.PI/180;
-                const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                const distance = R * c; 
+                
+                let closestBar = null;
+                let minDistance = Infinity;
 
-                if (distance <= MAX_RADIUS) {
-                    document.getElementById('location-status').innerText = "📍 Lokācija apstiprināta";
+                for (let bar of BARS) {
+                    const φ1 = bar.lat * Math.PI/180;
+                    const φ2 = lat * Math.PI/180;
+                    const Δφ = (lat-bar.lat) * Math.PI/180;
+                    const Δλ = (lng-bar.lng) * Math.PI/180;
+                    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    const distance = R * c; 
+                    
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        if (distance <= bar.radius) {
+                            closestBar = bar;
+                        }
+                    }
+                }
+
+                if (closestBar) {
+                    detectedBarName = closestBar.name;
+                    document.getElementById('location-status').innerText = `📍 Lokācija: ${detectedBarName}`;
                     openShiftComment("Sākt maiņu");
                 } else {
-                    alert(`Sorrrry... mēģini vēreiz, kad būsi mājiņā!\n\nAttālums: ~${Math.round(distance)} metri.\nLūdzu, atzīmējies tikai tad, kad esi ieradies/usies darba vietā.`);
+                    alert(`Sorrrry... mēģini vēlreiz, kad būsi mājiņā!\n\nTuvākais bārs ir ~${Math.round(minDistance)} metru attālumā.\nLūdzu, atzīmējies tikai tad, kad esi ieradies/usies darba vietā.`);
                 }
             },
             (error) => {
@@ -519,31 +576,38 @@
             }
         }
 
-        // NOBLOĶĒ POGU UN NOMAINI TEKSTU
         const confirmBtn = document.getElementById('confirm-shift-btn');
         const originalText = confirmBtn.innerText;
         confirmBtn.innerText = "⏳ Saglabā...";
         confirmBtn.disabled = true;
 
-        const comment = document.getElementById('shift-comment').value.trim();
+        let comment = document.getElementById('shift-comment').value.trim();
+        // Ja darbinieks SĀK maiņu, pieliekam komentāram klāt bāra nosaukumu
+        if (pendingShiftAction === "Sākt maiņu" && detectedBarName !== "") {
+            comment = `[Strādā: ${detectedBarName}] ` + comment;
+        }
+        
         const time = new Date().toLocaleString("lv-LV");
         const autoSheet = barsNames.includes(currentUser) ? "Bars" : "Virtuve";
         
         fetch(webAppUrl, {
             method: "POST", headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({ action: "maiņa", sheet: autoSheet, row: [currentUser, time, pendingShiftAction, comment] })
-        }).then(() => {
-            alert("✅ " + pendingShiftAction + " veiksmīgi reģistrēta!");
-            
-            // ATBLOĶĒ POGU UN ATGRIEŽ UZ SĀKUMU
+        }).then(res => res.json()).then(res => { // <--- Tagad lasām servera JSON atbildi
             confirmBtn.innerText = originalText;
             confirmBtn.disabled = false;
+            
+            // Ja serveris atgriež, ka ir kavējums, izmetam brīdinājuma logu
+            if (res.isLate) {
+                alert(`⚠️ Maiņa reģistrēta!\n\nUZMANĪBU: Tava maiņa pēc grafika sākās ${res.schedTime}.\nLūdzu, turpmāk plāno ierašanos laicīgāk!`);
+            } else {
+                alert("✅ " + pendingShiftAction + " veiksmīgi reģistrēta!");
+            }
+            
             showDashboard();
             
         }).catch(() => {
             alert("Kļūda saglabājot datus. Pārbaudi internetu.");
-            
-            // JA IR KĻŪDA, ATBLOĶĒ POGU, LAI VAR MĒĢINĀT VĒLREIZ
             confirmBtn.innerText = originalText;
             confirmBtn.disabled = false;
         });
@@ -560,11 +624,16 @@
         document.getElementById('briv-status').innerText = "Tiek ielādēti dati no tabulas...";
         document.getElementById('calendar-container').classList.add('hidden');
         
-        // Ielādējam parastās brīvdienas
         fetch(webAppUrl).then(res => res.json()).then(data => {
-            brivdienasData = data;
+            // Nofiksējam formātu kalendāram
+            brivdienasData = data.map(item => {
+                if (item.datums && item.datums.indexOf('.') !== -1) {
+                    let p = item.datums.split('.');
+                    if (p.length === 3) item.datums = `${p[2].trim()}-${p[1].trim()}-${p[0].trim()}`;
+                }
+                return item;
+            });
             
-            // Uzreiz pēc tam ielādējam atvaļinājumus, lai nobloķētu datumus
             fetch(webAppUrl, {
                 method: "POST", headers: { "Content-Type": "text/plain" },
                 body: JSON.stringify({ action: "get_vacations" })
@@ -572,8 +641,8 @@
                 document.getElementById('briv-status').innerText = "";
                 document.getElementById('calendar-container').classList.remove('hidden');
                 
-                initCalendar(); // Tavs esošais brīvdienu kalendārs
-                initVacationCalendar(vacRes.data || []); // Jaunais atvaļinājumu kalendārs
+                initCalendar(); 
+                initVacationCalendar(vacRes.data || []); 
             });
             
         }).catch(err => { document.getElementById('briv-status').innerText = "Neizdevās ielādēt vēsturi."; });
@@ -774,43 +843,68 @@ function openMyHours() {
             try {
                 let res = JSON.parse(text);
                 if (res.status === "ok") {
+                    
+                    // --- GUDRAIS FILTRS TEKOŠAJAM MĒNESIM ---
+                    const now = new Date();
+                    const currentMonth = now.getMonth(); // Mēneši no 0 līdz 11
+                    const currentYear = now.getFullYear();
+                    
+                    // Palīgfunkcija drošai datuma nolasīšanai no tabulas
+                    function parseDateLV(dateStr) {
+                        let d = new Date(dateStr);
+                        if (!isNaN(d)) return d;
+                        let cleanStr = dateStr.replace(",", "");
+                        let parts = cleanStr.split(" ");
+                        if (parts.length >= 2) {
+                            let dateP = parts[0].split(".");
+                            let timeP = parts[1].split(":");
+                            if (dateP.length === 3 && timeP.length >= 2) {
+                                return new Date(dateP[2], dateP[1] - 1, dateP[0], timeP[0], timeP[1], timeP[2] || 0);
+                            }
+                        }
+                        return new Date(); 
+                    }
+
+                    // Atstājam tikai šī mēneša ierakstus
+                    let thisMonthData = res.data.filter(item => {
+                        let d = parseDateLV(item.laiks);
+                        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                    });
+
                     let totalShifts = 0;
                     let html = "";
                     let totalMs = 0;
                     let startTime = null;
 
-                    let chronological = [...res.data].reverse();
+                    // Aprēķinām stundas TIKAI no šī mēneša datiem
+                    let chronological = [...thisMonthData].reverse();
                     chronological.forEach(item => {
-                        let d = new Date(item.laiks);
+                        let d = parseDateLV(item.laiks);
                         if (item.darbiba === "Sākt maiņu") {
                             startTime = d;
                         } else if (item.darbiba === "Beigt maiņu" && startTime) {
                             let endTime = d;
-                            if (!isNaN(startTime) && !isNaN(endTime)) {
-                                totalMs += (endTime - startTime);
-                            }
+                            totalMs += (endTime - startTime);
                             startTime = null; 
                         }
                     });
 
                     let totalHours = (totalMs / (1000 * 60 * 60)).toFixed(1);
 
-                    res.data.forEach(item => {
+                    // Ģenerējam vizuālo sarakstu
+                    thisMonthData.forEach(item => {
                         let isStart = item.darbiba === "Sākt maiņu";
                         let icon = isStart ? "<span style='color:#38a169;'><i class='fas fa-arrow-right-to-bracket'></i></span>" : "<span style='color:#e53e3e;'><i class='fas fa-arrow-right-from-bracket'></i></span>";
                         if(isStart) totalShifts++;
 
                         let displayTime = item.laiks;
-                        let d = new Date(item.laiks);
+                        let d = parseDateLV(item.laiks);
                         if (!isNaN(d)) {
                             let dd = String(d.getDate()).padStart(2, '0');
                             let mm = String(d.getMonth() + 1).padStart(2, '0');
-                            let yyyy = d.getFullYear();
                             let hh = String(d.getHours()).padStart(2, '0');
                             let min = String(d.getMinutes()).padStart(2, '0');
-                            displayTime = `${dd}.${mm}.${yyyy} ${hh}:${min}`;
-                        } else {
-                            displayTime = item.laiks.split(" GMT")[0];
+                            displayTime = `${dd}.${mm}. ${hh}:${min}`;
                         }
                         
                         html += `<div style="border-bottom:1px solid #e2e8f0; padding:12px 0; font-size:14px;">
@@ -820,28 +914,33 @@ function openMyHours() {
                         </div>`;
                     });
                     
-                    document.getElementById('hours-list-container').innerHTML = html || "<p style='text-align:center; color:#a0aec0;'>Nav atrasti ieraksti.</p>";
+                    const menesuNosaukumi = ["Janvāra", "Februāra", "Marta", "Aprīļa", "Maija", "Jūnija", "Jūlija", "Augusta", "Septembra", "Oktobra", "Novembra", "Decembra"];
+                    const menesaVards = menesuNosaukumi[currentMonth];
+
+                    document.getElementById('hours-list-container').innerHTML = html || "<p style='text-align:center; color:#a0aec0; margin-top:20px;'>Šomēnes vēl nav atzīmēta neviena maiņa.</p>";
                     document.getElementById('hours-total-text').innerHTML = `<span style="font-size:36px; font-weight:bold;">~${totalHours}</span> <span style="font-size:16px;">h</span>`;
-                    document.getElementById('hours-sub-text').innerText = `(Aptuvenais laiks no pēdējām ${totalShifts} maiņām)`;
+                    document.getElementById('hours-sub-text').innerText = `(${menesaVards} nostrādātais laiks no ${totalShifts} maiņām)`;
                 } else {
                     document.getElementById('hours-total-text').innerText = "Kļūda datubāzē";
                     alert("Kļūda no tabulas: " + res.msg);
                 }
             } catch (e) {
                 document.getElementById('hours-total-text').innerText = "Kļūda nolasot";
-                alert("⚠️ Izskatās, ka tu aizmirsi pārkopēt jauno saiti! Lūdzu, Google Script logā uztaisi New Deployment un iekopē jauno saiti sava HTML faila sākumā.");
+                alert("Sistēmas kļūda apstrādājot datus.");
             }
         }).catch(err => {
             document.getElementById('hours-total-text').innerText = "Kļūda savienojumā";
-            alert("Savienojuma kļūda: " + err.message);
         });
     }
 function openAdminPanel() {
         showScreen('admin-screen');
         document.getElementById('new-announcement').value = "";
+        
+        // Ielādējam brīvdienas komandas kalendāram
+        loadAdminBrivdienas();
     }
 
-    function sendAnnouncement() {
+function sendAnnouncement() {
         const msg = document.getElementById('new-announcement').value.trim();
         if(!msg) return alert("Lūdzu, ieraksti paziņojuma tekstu!");
         
@@ -943,6 +1042,179 @@ function openMySchedule() {
             }
         }).catch(err => {
             container.innerHTML = "<p style='text-align:center; color:#e53e3e;'>Kļūda savienojumā. Pārbaudi internetu.</p>";
+        });
+    }
+// --- PRIVĀTĀS ZIŅAS ---
+    function openMessageScreen() {
+        showScreen('message-screen');
+        document.getElementById('private-message-text').value = "";
+    }
+
+    function sendMessageToAdmin(btn) {
+        const msg = document.getElementById('private-message-text').value.trim();
+        if (!msg) return alert("Lūdzu, ieraksti ziņas tekstu!");
+
+        const originalText = btn.innerText;
+        btn.innerText = "⏳ Sūta...";
+        btn.disabled = true;
+
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "send_message", name: currentUser, message: msg })
+        }).then(res => res.json()).then(res => {
+            btn.innerText = originalText;
+            btn.disabled = false;
+            if(res.status === "ok") {
+                alert("✅ Ziņa veiksmīgi nosūtīta vadībai!");
+                showDashboard();
+            } else {
+                alert("Kļūda: " + res.msg);
+            }
+        }).catch(err => {
+            btn.innerText = originalText;
+            btn.disabled = false;
+            alert("Kļūda nosūtot ziņu.");
+        });
+    }
+
+    function loadAdminMessages(btn) {
+        const listContainer = document.getElementById('admin-messages-list');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "<i class='fas fa-spinner fa-spin' style='margin-right:8px;'></i> Ielādē...";
+        btn.disabled = true;
+        
+        listContainer.innerHTML = "<p style='text-align:center; color:#718096;'>Meklē ziņas...</p>";
+
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "get_messages" })
+        }).then(res => res.json()).then(res => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            if(res.status === "ok") {
+                let html = "";
+                res.data.forEach(m => {
+                    html += `<div style="background:#f7fafc; border-left:4px solid #805ad5; padding:12px; margin-bottom:10px; border-radius:4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                            <strong style="color:#2d3748; font-size:15px;"><i class="fas fa-user-circle" style="color:#a0aec0;"></i> ${m.name}</strong>
+                            <span style="color:#718096; font-size:12px;">${m.time}</span>
+                        </div>
+                        <div style="color:#4a5568; font-size:14px; white-space: pre-wrap;">${m.message}</div>
+                    </div>`;
+                });
+                listContainer.innerHTML = html || "<p style='text-align:center; color:#a0aec0;'>Nav jaunu ziņu no darbiniekiem.</p>";
+            } else {
+                listContainer.innerHTML = `<p style='color:red; text-align:center;'>Kļūda: ${res.msg}</p>`;
+            }
+        }).catch(err => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            listContainer.innerHTML = "<p style='color:red; text-align:center;'>Savienojuma kļūda.</p>";
+        });
+    }
+// --- VADĪTĀJA KOMANDAS KALENDĀRS ---
+    let adminFpInstance = null;
+    let allBrivDataByDate = {}; // Te glabāsim katras dienas atpūtniekus
+
+    function loadAdminBrivdienas() {
+        const detailsDiv = document.getElementById('admin-briv-details');
+        detailsDiv.innerHTML = "<i class='fas fa-spinner fa-spin' style='color:#3182ce;'></i> Ielādē komandas datus...";
+        
+        fetch(webAppUrl).then(res => res.json()).then(data => {
+            allBrivDataByDate = {}; 
+            
+            data.forEach(item => {
+                let dateStr = item.datums;
+                if (dateStr && dateStr.indexOf('.') !== -1) {
+                    let p = dateStr.split('.');
+                    if(p.length === 3) dateStr = `${p[2].trim()}-${p[1].trim()}-${p[0].trim()}`;
+                }
+
+                if (!allBrivDataByDate[dateStr]) allBrivDataByDate[dateStr] = [];
+                let tag = item.statuss === "Atvaļinājums" ? "🌴 Atvaļ." : "☕ Brīvdiena";
+                allBrivDataByDate[dateStr].push(`<div style="padding: 4px 0;"><strong style="color:#2d3748;">${item.vards}</strong> <span style="color:#718096; font-size:12px;">(${tag} - ${item.nodala})</span></div>`);
+            });
+            
+            initAdminCalendar();
+        }).catch(err => {
+            detailsDiv.innerHTML = "<span style='color:#e53e3e;'>Neizdevās ielādēt datus. Pārbaudi savienojumu.</span>";
+        });
+    }
+
+    function initAdminCalendar() {
+        if(adminFpInstance) adminFpInstance.destroy();
+        
+        adminFpInstance = flatpickr("#admin-briv-calendar", {
+            inline: true, // <--- Šis parametrs liek kalendāram vienmēr būt atvērtam (bez klikšķa uz lauciņa)
+            locale: "lv",
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const formatStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
+                
+                // Ja šajā datumā kādam ir brīvdiena, iekrāsojam dienu un pieliekam svītriņu apakšā
+                if (allBrivDataByDate[formatStr] && allBrivDataByDate[formatStr].length > 0) {
+                    dayElem.style.backgroundColor = "#ebf8ff";
+                    dayElem.style.borderBottom = "3px solid #3182ce";
+                    dayElem.style.fontWeight = "bold";
+                    dayElem.style.color = "#2b6cb0";
+                }
+            },
+            onChange: function(selectedDates, dateStr, instance) {
+                const detailsDiv = document.getElementById('admin-briv-details');
+                const parts = dateStr.split('-');
+                const lvDate = `${parts[2]}.${parts[1]}.${parts[0]}`; // Smuks LV datums
+                
+                // Parādām sarakstu ar cilvēkiem, ja tādā datumā kāds ir
+                if (allBrivDataByDate[dateStr] && allBrivDataByDate[dateStr].length > 0) {
+                    detailsDiv.innerHTML = `<div style="margin-bottom:8px; color:#2b6cb0; font-weight:bold; font-size:15px;">📅 ${lvDate} atpūšas:</div>` + allBrivDataByDate[dateStr].join("");
+                } else {
+                    detailsDiv.innerHTML = `<div style="margin-bottom:8px; color:#718096; font-weight:bold;">📅 ${lvDate}</div><span style='color:#a0aec0;'>Šajā dienā neviens nav pieteicis brīvdienas.</span>`;
+                }
+            }
+        });
+        
+        document.getElementById('admin-briv-details').innerHTML = "<em>Noklikšķini uz zilajiem datumiem kalendārā, lai redzētu pieteikumus...</em>";
+    }
+// --- DOKUMENTI UN INSTRUKCIJAS ---
+    function openInstructions() {
+        showScreen('instructions-screen');
+        const listContainer = document.getElementById('instructions-list');
+        listContainer.innerHTML = "<p style='text-align:center; color:#718096;'><i class='fas fa-spinner fa-spin'></i> Ielādē failus...</p>";
+        
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "get_instructions" })
+        }).then(res => res.json()).then(res => {
+            if(res.status === "ok") {
+                if (res.data && res.data.length > 0) {
+                    let html = "";
+                    res.data.forEach(item => {
+                        // Automātiski pieliekam smuku ikonu atkarībā no kategorijas nosaukuma
+                        let icon = "fa-file-alt";
+                        if(item.category.toLowerCase().includes("recep")) icon = "fa-cocktail";
+                        else if(item.category.toLowerCase().includes("noteik")) icon = "fa-clipboard-list";
+                        else if(item.category.toLowerCase().includes("kas")) icon = "fa-cash-register";
+                        
+                        html += `<a href="${item.url}" target="_blank" style="display:block; text-decoration:none; background:#fffaf0; border-left:4px solid #ed8936; padding:12px; margin-bottom:10px; border-radius:4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); color:#2d3748; transition:0.2s;">
+                            <div style="display:flex; align-items:center;">
+                                <div style="background:#feebc8; color:#dd6b20; min-width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:12px; font-size:16px;">
+                                    <i class="fas ${icon}"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size:12px; color:#dd6b20; font-weight:bold; text-transform:uppercase;">${item.category}</div>
+                                    <div style="font-size:15px; font-weight:bold;">${item.title}</div>
+                                </div>
+                            </div>
+                        </a>`;
+                    });
+                    listContainer.innerHTML = html;
+                } else {
+                    listContainer.innerHTML = "<p style='text-align:center; color:#a0aec0;'>Šobrīd šeit nav pievienotu dokumentu.</p>";
+                }
+            } else {
+                listContainer.innerHTML = `<p style='text-align:center; color:#e53e3e;'>Kļūda: ${res.msg}</p>`;
+            }
+        }).catch(err => {
+            listContainer.innerHTML = "<p style='text-align:center; color:#e53e3e;'>Kļūda savienojumā.</p>";
         });
     }
 </script>
