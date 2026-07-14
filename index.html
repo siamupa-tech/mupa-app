@@ -578,17 +578,17 @@
 
         const confirmBtn = document.getElementById('confirm-shift-btn');
         const originalText = confirmBtn.innerText;
-        confirmBtn.innerText = "⏳ Pārbauda...";
+        
+        // JAUNAIS TEKSTS, lai mēs zinātu, ka ielādējies jaunais kods:
+        confirmBtn.innerText = "⏳ Pārbauda grafiku...";
         confirmBtn.disabled = true;
 
         let baseComment = document.getElementById('shift-comment').value.trim();
         
-        // Pievienojam lokāciju, ja sāk maiņu
         if (pendingShiftAction === "Sākt maiņu" && detectedBarName !== "") {
             baseComment = `[Strādā: ${detectedBarName}] ` + baseComment;
         }
         
-        // Ja tika uzdots jautājums par aizvietošanu, pievienojam to kā spilgtu marķieri
         if (isForce && forceReason !== "") {
             baseComment = forceReason + " " + baseComment;
         }
@@ -596,7 +596,6 @@
         const time = new Date().toLocaleString("lv-LV");
         const autoSheet = barsNames.includes(currentUser) ? "Bars" : "Virtuve";
         
-        // Sūtam uz datubāzi, padodot "force" karodziņu
         fetch(webAppUrl, {
             method: "POST", headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({ 
@@ -607,7 +606,14 @@
             })
         }).then(res => res.json()).then(res => {
             
-            // Ja serveris saka "Paga, ir KONFLIKTS!"
+            // Ja serverī notiek tehniska kļūda (lai vairs nerāda viltus zaļo ķeksi)
+            if (res.status === "error") {
+                alert("❌ Sistēmas kļūda: " + res.msg);
+                confirmBtn.innerText = originalText;
+                confirmBtn.disabled = false;
+                return;
+            }
+            
             if (res.status === "conflict") {
                 confirmBtn.innerText = originalText;
                 confirmBtn.disabled = false;
@@ -615,31 +621,27 @@
                 let userReason = "";
                 let prefix = "";
                 
-                // Ja darbiniekam šodien ir atvaļinājums/brīvdiena
                 if (res.type === "vacation") {
-                    userReason = prompt("⚠️ SISTĒMAS BRĪDINĀJUMS:\nSistēma rāda, ka tev šodien ir pieteikta BRĪVDIENA / ATVAĻINĀJUMS!\n\nVai tiešām atnāci strādāt? Lūdzu, obligāti ieraksti iemeslu (piemēram, 'Izsauca palīgā'):");
-                    if (userReason === null) return; // Ja nospiež Atcelt
+                    userReason = prompt("⚠️ SISTĒMAS BRĪDINĀJUMS:\nSistēma rāda, ka tev šodien ir pieteikta BRĪVDIENA / ATVAĻINĀJUMS!\n\nVai tiešām atnāci strādāt? Lūdzu, obligāti ieraksti iemeslu:");
+                    if (userReason === null) return;
                     prefix = `🔴 [STRĀDĀ BRĪVDIENĀ: ${userReason}]`;
                 } 
-                // Ja darbinieks nav šodienas grafikā
                 else if (res.type === "unscheduled") {
-                    userReason = prompt("⚠️ SISTĒMAS BRĪDINĀJUMS:\nSistēma neredz tevi šodienas grafikā!\n\nVai tu šodien kādu aizvieto? Lūdzu, obligāti ieraksti, kura kolēģa vietā strādā:");
-                    if (userReason === null) return; // Ja nospiež Atcelt
+                    userReason = prompt("⚠️ SISTĒMAS BRĪDINĀJUMS:\nSistēma neredz tevi šodienas grafikā!\n\nVai tu šodien kādu aizvieto? Lūdzu, obligāti ieraksti kura kolēģa vietā strādā:");
+                    if (userReason === null) return;
                     prefix = `🟠 [NEPLĀNOTA MAIŅA: ${userReason}]`;
                 }
                 
-                // Ja neko neierakstīja, neļaujam turpināt
                 if (userReason.trim() === "") {
-                    alert("❌ Tev obligāti jāieraksta iemesls, lai varētu sākt neplānotu maiņu!");
+                    alert("❌ Tev obligāti jāieraksta iemesls!");
                     return;
                 }
                 
-                // Ja iemesls ierakstīts - palaižam saglabāšanu vēlreiz ar piespiedu (force) spēku!
+                // Palaižam vēlreiz ar spēku!
                 confirmShift(true, prefix);
                 return;
             }
             
-            // Ja viss veiksmīgi saglabājās
             confirmBtn.innerText = originalText;
             confirmBtn.disabled = false;
             
@@ -651,13 +653,12 @@
             
             showDashboard();
             
-        }).catch(() => {
+        }).catch(err => {
             alert("Kļūda saglabājot datus. Pārbaudi internetu.");
             confirmBtn.innerText = originalText;
             confirmBtn.disabled = false;
         });
     }
-
     // --- BRĪVDIENAS ---
     let brivdienasData = [];
     let fpInstance = null;
