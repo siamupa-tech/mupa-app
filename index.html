@@ -123,6 +123,30 @@
         body.dark-mode #all-employees-list div { border-bottom-color: #4a5568 !important; }
 	body.dark-mode #schedule-list-container strong { color: #f7fafc !important; }
         body.dark-mode #schedule-list-container div { border-bottom-color: #4a5568 !important; }
+
+/* Flotējošā atjaunošanas poga */
+    .refresh-floating {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #edf2f7;
+        border: none;
+        color: #4a5568;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.2s, background 0.2s;
+        z-index: 10;
+    }
+    .refresh-floating:active {
+        transform: scale(0.9) rotate(180deg);
+        background: #e2e8f0;
+    }
     </style>
 </head>
 <body>
@@ -139,6 +163,7 @@
 
 <!-- 2. DARBINIEKA GALVENĀ IZVĒLNE -->
 <div class="card hidden" id="dashboard-screen">
+<button class="refresh-floating" onclick="refreshDashboardData()"><i class="fas fa-rotate"></i></button>
     
 <!-- INFO SIENA / PAZIŅOJUMI (Dinamiska) -->
     <div class="info-wall" id="info-wall-container">
@@ -175,7 +200,6 @@
     <button class="action-btn btn-logout" onclick="logout()"><i class="fas fa-right-from-bracket" style="margin-right: 8px;"></i> Mainīt lietotāju (Iziet)</button>
 </div>
 
-<!-- 3. MAIŅAS KOMENTĀRS AR PULKSTENI UN ČEKLISTI -->
 <!-- 3. MAIŅAS KOMENTĀRS AR PULKSTENI UN ČEKLISTI -->
 <div class="card hidden" id="shift-comment-screen">
     <h2 id="shift-comment-title">⏱️ Maiņas reģistrācija</h2>
@@ -243,6 +267,7 @@
 
 <!-- 6. VADĪTĀJA PANELIS --> 
 <div class="card hidden" id="admin-screen">
+    <button class="refresh-floating" onclick="refreshAdminData()"><i class="fas fa-rotate"></i></button>
     <h2><i class="fas fa-crown" style="margin-right: 10px; color: #d69e2e;"></i> Vadītājs</h2>
     
     <div class="checklist-box admin-box" style="border-color: #d69e2e; background: #fffff0; margin-bottom: 20px;">
@@ -1273,6 +1298,43 @@ function openMySchedule() {
         }).catch(err => {
             listContainer.innerHTML = "<p style='text-align:center; color:#e53e3e;'>Kļūda savienojumā.</p>";
         });
+    }
+// Automātiski atjauno datus, kad aplikāciju izvelk no fona (atmodina)
+    document.addEventListener("visibilitychange", function() {
+        if (document.visibilityState === "visible") {
+            if (currentUser) {
+                console.log("Aplikācija atmodināta! Atjauno datus...");
+                refreshDashboardData();
+            }
+        }
+    });
+
+    // Funkcija, kas atjauno sākumekrāna datus
+    function refreshDashboardData() {
+        const btn = document.querySelector("#dashboard-screen .refresh-floating i");
+        if(btn) btn.classList.add("fa-spin"); // Piegriežam ikoniņu atjaunošanās laikā
+        
+        // Šeit mēs izsaucam tās funkcijas, kas ielādē datus sākumekrānā
+        if (typeof checkAnnouncements === "function") checkAnnouncements(); 
+        if (typeof getActiveWorkers === "function") getActiveWorkers(); 
+        
+        setTimeout(() => {
+            if(btn) btn.classList.remove("fa-spin");
+        }, 1000);
+    }
+
+    // Funkcija, kas atjauno vadītāja paneļa datus
+    function refreshAdminData() {
+        const btn = document.querySelector("#admin-screen .refresh-floating i");
+        if(btn) btn.classList.add("fa-spin");
+        
+        // Atjaunojam vadītāja paziņojumus un vēsturi
+        if (typeof loadAllEmployeesHours === "function") loadAllEmployeesHours();
+        if (typeof loadAdminMessages === "function") loadAdminMessages();
+        
+        setTimeout(() => {
+            if(btn) btn.classList.remove("fa-spin");
+        }, 1000);
     }
 </script>
 
