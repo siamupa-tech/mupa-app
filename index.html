@@ -313,7 +313,7 @@
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbxUcxyZwRorOsZr8GmJbLugOHabIQIqNogNErjHNvLl3ovCb10Efbxj6_KCXncAdqo/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbzYW-xiIDPx580WWru6tCsrZLZ0amug64N2jj4ubWJKiRWB3oanA7Ijc-dnQTpdxuA/exec";
     
     // IEVADI SAVU BĀRU KOORDINĀTAS (Veldze jau ir precīza, Alus Muižu pielabosi, ja vajadzēs):
     const BARS = [
@@ -1057,14 +1057,13 @@ function loadAllEmployeesHours() {
 function openMySchedule() {
         showScreen('schedule-screen');
         
-        // Uzģenerējam aktuālā mēneša un gada nosaukumu (piem. "Jūlijs 2026")
         const months = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
         const now = new Date();
         const sheetName = months[now.getMonth()] + " " + now.getFullYear();
         
         document.getElementById('schedule-month-text').innerText = sheetName;
         const container = document.getElementById('schedule-list-container');
-        container.innerHTML = "<p style='text-align:center; color:#a0aec0;'>Meklējam maiņas tabulā...</p>";
+        container.innerHTML = "<p style='text-align:center; color:#a0aec0;'><i class='fas fa-spinner fa-spin'></i> Meklējam maiņas tabulā...</p>";
         
         fetch(webAppUrl, {
             method: "POST", headers: { "Content-Type": "text/plain" },
@@ -1074,9 +1073,21 @@ function openMySchedule() {
                 if (res.data && res.data.length > 0) {
                     let html = "";
                     res.data.forEach(item => {
+                        
+                        // Izveidojam krāsainu marķieri atkarībā no lokācijas
+                        let locBadge = "";
+                        if (item.location === "Alus Muiža") {
+                            locBadge = `<div style="margin-top:6px;"><span style="background:#feebc8; color:#c05621; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-beer" style="margin-right:4px;"></i> Alus Muiža</span></div>`;
+                        } else if (item.location === "Gust.") {
+                            locBadge = `<div style="margin-top:6px;"><span style="background:#c6f6d5; color:#22543d; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-martini-glass-citrus" style="margin-right:4px;"></i> Gust.</span></div>`;
+                        }
+
                         html += `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:12px 0;">
                             <strong style="color:#2d3748; font-size:16px;">${item.date}</strong>
-                            <span style="background:#ebf8ff; color:#3182ce; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:15px;">${item.shift}</span>
+                            <div style="text-align:right;">
+                                <span style="background:#ebf8ff; color:#3182ce; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:15px;">${item.shift}</span>
+                                ${locBadge}
+                            </div>
                         </div>`;
                     });
                     container.innerHTML = html;
