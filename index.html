@@ -315,13 +315,26 @@
 <!-- 8. ZIŅAS RAKSTĪŠANAS EKRĀNS -->
 <div class="card hidden" id="message-screen">
     <h2><i class="fas fa-envelope" style="margin-right: 10px; color: #805ad5;"></i> Ziņa vadītājam</h2>
-    <button class="action-btn" style="background: #ed8936; color: white;" onclick="openInstructions()"><i class="fas fa-book" style="margin-right: 8px;"></i> Dokumenti un Receptes</button>
+    <button class="action-btn" style="background: #e53e3e; color: white;" onclick="openInventoryScreen()"><i class="fas fa-boxes-packing" style="margin-right: 8px;"></i> Noliktavas brīdinājumi</button>
     <p style="text-align:center; color:#718096; font-size:14px; margin-bottom:20px;">Šo ziņu redzēs tikai vadītāji savā panelī.</p>
     
     <textarea id="private-message-text" rows="4" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; resize: none; font-family: inherit; font-size: 14px; box-sizing: border-box;" placeholder="Ieraksti savu ziņu šeit..."></textarea>
     
     <button class="action-btn" style="background: #805ad5; color: white; margin-top: 15px;" onclick="sendMessageToAdmin(this)">Nosūtīt ziņu</button>
     <button class="back-btn" onclick="showDashboard()">Atpakaļ</button>
+</div>
+
+<div class="card hidden" id="inventory-screen">
+    <h2><i class="fas fa-triangle-exclamation" style="margin-right: 10px; color: #e53e3e;"></i> Noliktava iet uz beigām?</h2>
+    
+    <p style="text-align:center; color:#4a5568; font-size:14px; margin-bottom:15px;">
+        Ziņo vadībai, ja bārā vai virtuvē kaut kas sāk trūkt (piemēram, beidzas kafija, nav ledus, saplīsa inventārs).
+    </p>
+    
+    <textarea id="inventory-message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 14px; margin-bottom: 15px; resize: none;" placeholder="Raksti šeit, kas tieši trūkst..."></textarea>
+    
+    <button class="action-btn" style="background: #e53e3e; color: white;" id="send-inventory-btn" onclick="sendInventoryAlert()"><i class="fas fa-paper-plane" style="margin-right: 8px;"></i> Nosūtīt brīdinājumu</button>
+    <button class="back-btn" onclick="showDashboard()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Atpakaļ</button>
 </div>
 
 <!-- 9. DOKUMENTI UN INSTRUKCIJAS -->
@@ -338,12 +351,12 @@
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbyE7Vy3YuBW9g79VP_lXbvT7AedrHMQIvBDOY4cJyq5jDK_bIxPeFp-GCJy33MYmNo/exec";
+    const webAppUrl = "https://https://script.google.com/macros/s/AKfycbwWLBErhgfjK6SvnKsGNnX57DHi7hZDbIEIpxn9fN4naNIEvuT1mDCE-8cPZ1IQMg/exec";
     
     // IEVADI SAVU BĀRU KOORDINĀTAS (Veldze jau ir precīza, Alus Muižu pielabosi, ja vajadzēs):
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 }, // Matīsa 8 (Veldze)
-        { name: "Alus Muiža", lat: 56.953610, lng: 24.128710, radius: 50 } // ~Ģertrūdes 45
+        { name: "Alus Muiža", lat: 56.953533, lng: 24.129785, radius: 50 } // ~Ģertrūdes 45
     ];
 
     const adminNames = ["Kaspars", "Daumants", "Baiba"]; // Šeit ieraksti īstos vadītāju vārdus!
@@ -1335,6 +1348,42 @@ function openMySchedule() {
         setTimeout(() => {
             if(btn) btn.classList.remove("fa-spin");
         }, 1000);
+    }
+function openInventoryScreen() {
+        document.getElementById('inventory-message').value = ""; // Notīra veco tekstu
+        showScreen('inventory-screen');
+    }
+
+    function sendInventoryAlert() {
+        const msg = document.getElementById('inventory-message').value.trim();
+        if (msg === "") {
+            alert("⚠️ Lūdzu, ieraksti, kas tieši trūkst!");
+            return;
+        }
+        
+        const btn = document.getElementById('send-inventory-btn');
+        const origText = btn.innerHTML;
+        btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Sūta...";
+        btn.disabled = true;
+        
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "inventory_alert", name: currentUser, message: msg })
+        }).then(res => res.json()).then(res => {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            
+            if(res.status === "ok") {
+                alert("✅ Brīdinājums veiksmīgi nosūtīts!");
+                showDashboard();
+            } else {
+                alert("❌ Kļūda no servera: " + res.msg);
+            }
+        }).catch(err => {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            alert("❌ Kļūda savienojumā. Pārbaudi internetu!");
+        });
     }
 </script>
 
