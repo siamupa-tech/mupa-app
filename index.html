@@ -212,11 +212,21 @@
     
     <!-- NAKTS KONTROLSARAKSTS -->
     <div id="night-checklist" class="checklist-box hidden">
-        <p><i class="fas fa-triangle-exclamation" style="margin-right: 8px;"></i> Nakts slēgšanas atgādinājumi:</p>
-        <label><input type="checkbox" id="check-kresli"> Vai sanesi visus koka krēslus iekštelpās?</label>
-        <label><input type="checkbox" id="check-glazes"> Vai esi pārmeklējis Veldzes teritorijā tukšās glāzes?</label>
-        <label><input type="checkbox" id="check-signalizacija"> Ieslēdz Signalizāciju</label>
-    </div>
+        <!-- Gust. Darbi (OBLIGĀTIE) -->
+        <div id="tasks-gust" class="hidden">
+            <label><input type="checkbox" class="required-check"> Vai sanesi visus koka krēslus iekštelpās?</label>
+            <label><input type="checkbox" class="required-check"> Vai esi pārmeklējis Veldzes teritorijā tukšās glāzes?</label>
+            <label><input type="checkbox" class="required-check"> Izslēdz mūziku un gaismas</label>
+            <label><input type="checkbox" class="required-check"> Ieslēdz Signalizāciju (Gust.)</label>
+        </div>
+
+        <!-- Alus Muižas Darbi (OBLIGĀTIE) -->
+        <div id="tasks-muiza" class="hidden">
+            <label><input type="checkbox" class="required-check"> Pārbaudi, vai logi ir ciet</label>
+            <label><input type="checkbox" class="required-check"> Vai esi nosvēris alus mucas?</label>
+            <label><input type="checkbox" class="required-check"> Vai esi izslēdzis Trauķeni?</label>
+            <label><input type="checkbox" class="required-check"> Ieslēdz Signalizāciju (Muiža)</label>
+        </div>
 
     <button class="action-btn btn-green" id="confirm-shift-btn" onclick="confirmShift()">Apstiprināt</button>
     <button class="back-btn" onclick="showDashboard()">Atcelt</button>
@@ -684,6 +694,11 @@
                 alert(`⚠️ Maiņa reģistrēta!\n\nUZMANĪBU: Tava maiņa pēc grafika sākās ${res.schedTime}.\nLūdzu, turpmāk plāno ierašanos laicīgāk!`);
             } else {
                 alert("✅ " + pendingShiftAction + " veiksmīgi reģistrēta!");
+            }
+            
+            // HIGIĒNA: Izdzēšam bāra atmiņu, ja maiņa ir veiksmīgi beigta!
+            if (pendingShiftAction === "Beigt maiņu") {
+                localStorage.removeItem('mupa_active_bar');
             }
             
             showDashboard();
