@@ -542,6 +542,7 @@
 
                 if (closestBar) {
                     detectedBarName = closestBar.name;
+                    localStorage.setItem('mupa_active_bar', detectedBarName); // <-- JAUNUMS: Saglabājam telefona atmiņā!
                     document.getElementById('location-status').innerText = `📍 Lokācija: ${detectedBarName}`;
                     openShiftComment("Sākt maiņu");
                 } else {
@@ -582,7 +583,16 @@
         } else {
             confirmBtn.className = "action-btn btn-red";
             document.getElementById('shift-comment').placeholder = "Piemēram: Reāli beidzu 23:45";
-            if (hour >= 23 || hour < 6) checklist.classList.remove('hidden');
+            if (hour >= 23 || hour < 6) {
+                checklist.classList.remove('hidden');
+                
+                // JAUNUMS: Automātiski ielasa lokāciju no rīta GPS atmiņAS
+                const savedBar = localStorage.getItem('mupa_active_bar');
+                if (savedBar && document.getElementById('close-bar-select')) {
+                    document.getElementById('close-bar-select').value = savedBar;
+                    updateChecklist(); // Uzreiz izmet pareizos darbus!
+                }
+            }
         }
         
         showScreen('shift-comment-screen');
