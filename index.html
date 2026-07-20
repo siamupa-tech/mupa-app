@@ -1309,14 +1309,14 @@ function openMySchedule() {
         }
     });
 
-    // Funkcija, kas atjauno sākumekrāna datus
+  // Funkcija, kas atjauno sākumekrāna datus
     function refreshDashboardData() {
         const btn = document.querySelector("#dashboard-screen .refresh-floating i");
-        if(btn) btn.classList.add("fa-spin"); // Piegriežam ikoniņu atjaunošanās laikā
+        if(btn) btn.classList.add("fa-spin"); 
         
-        // Šeit mēs izsaucam tās funkcijas, kas ielādē datus sākumekrānā
-        if (typeof checkAnnouncements === "function") checkAnnouncements(); 
-        if (typeof getActiveWorkers === "function") getActiveWorkers(); 
+        // Tavi īstie funkciju nosaukumi!
+        loadInfoWall(); 
+        loadActiveWorkers(); 
         
         setTimeout(() => {
             if(btn) btn.classList.remove("fa-spin");
@@ -1328,9 +1328,11 @@ function openMySchedule() {
         const btn = document.querySelector("#admin-screen .refresh-floating i");
         if(btn) btn.classList.add("fa-spin");
         
-        // Atjaunojam vadītāja paziņojumus un vēsturi
-        if (typeof loadAllEmployeesHours === "function") loadAllEmployeesHours();
-        if (typeof loadAdminMessages === "function") loadAdminMessages();
+        loadAllEmployeesHours(); // Atjauno vēsturi
+        loadAdminBrivdienas(); // JAUNUMS: atjauno arī komandas atpūtas kalendāru
+        
+        // Iedodam "mākslīgu" pogu ziņu funkcijai, lai tā nenobruktu
+        loadAdminMessages({ innerHTML: "", disabled: false }); 
         
         setTimeout(() => {
             if(btn) btn.classList.remove("fa-spin");
