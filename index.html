@@ -190,7 +190,7 @@
 
         <hr style="border-top:1px dashed #feb2b2; margin: 15px 0;">
 
-        <label style="color: #c53030; font-weight: bold; font-size: 15px;"><input type="checkbox" id="check-kase"> 💰 Es noņēmis kasi </label>
+        <label style="color: #c53030; font-weight: bold; font-size: 15px;"><input type="checkbox" id="check-kase"> 💰 Es noņēmu kasi. </label>
     </div>
 
     <button class="action-btn btn-green" id="confirm-shift-btn" onclick="confirmShift()">Apstiprināt</button>
@@ -595,24 +595,29 @@
                 confirmBtn.disabled = false;
                 return;
             }
-            if (res.status === "conflict") {
+            
+            // IZLABOTAIS BLOKS: Tagad saprot gan "conflict", gan "warning", gan "unplanned"
+            if (res.status === "conflict" || res.status === "warning") {
                 confirmBtn.innerText = originalText;
                 confirmBtn.disabled = false;
                 let userReason = "";
                 let prefix = "";
+                
                 if (res.type === "vacation") {
                     userReason = prompt("⚠️ SISTĒMAS BRĪDINĀJUMS:\nSistēma rāda, ka tev šodien ir pieteikta BRĪVDIENA!\n\nIeraksti iemeslu:");
                     if (userReason === null) return;
                     prefix = `🔴 [STRĀDĀ BRĪVDIENĀ: ${userReason}]`;
-                } else if (res.type === "unscheduled") {
+                } else if (res.type === "unscheduled" || res.type === "unplanned") {
                     userReason = prompt("⚠️ SISTĒMAS BRĪDINĀJUMS:\nSistēma neredz tevi grafikā!\n\nIeraksti kura kolēģa vietā strādā:");
                     if (userReason === null) return;
                     prefix = `🟠 [NEPLĀNOTA MAIŅA: ${userReason}]`;
                 }
+                
                 if (userReason.trim() === "") return alert("❌ Tev obligāti jāieraksta iemesls!");
                 confirmShift(true, prefix);
                 return;
             }
+            
             confirmBtn.innerText = originalText;
             confirmBtn.disabled = false;
             
