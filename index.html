@@ -691,7 +691,17 @@
     function initCalendar() {
         if(fpInstance) fpInstance.destroy();
         const today = new Date();
-        const firstDayOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        
+        // 3. NOTEIKUMS: Pēc 22. datuma nākamais mēnesis ir slēgts
+        let allowedMonthStart;
+        if (today.getDate() > 22) {
+            // Sākot no 23. datuma, var pieteikt tikai no aiznākamā mēneša 1. datuma
+            allowedMonthStart = new Date(today.getFullYear(), today.getMonth() + 2, 1);
+        } else {
+            // Līdz 22. datumam (ieskaitot), var pieteikt jau nākamajam mēnesim
+            allowedMonthStart = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        }
+        
         const isBarEmployee = barsNames.includes(currentUser);
         const barDateCounts = {};
         const myDates = []; 
@@ -706,10 +716,14 @@
         });
         
         renderMyBookedList(myDates);
-        const disabledDates = isBarEmployee ? Object.keys(barDateCounts).filter(d => barDateCounts[d] >= 3) : [];
+        
+        // 1. NOTEIKUMS: Mainām limitu uz max 2 darbiniekiem vienā dienā (bāram)
+        const disabledDates = isBarEmployee ? Object.keys(barDateCounts).filter(d => barDateCounts[d] >= 2) : [];
 
         fpInstance = flatpickr("#date-briv", {
-            mode: "multiple", dateFormat: "Y-m-d", altInput: true, altFormat: "d.m.Y", locale: "lv", minDate: firstDayOfNextMonth, disable: disabledDates,
+            mode: "multiple", dateFormat: "Y-m-d", altInput: true, altFormat: "d.m.Y", locale: "lv", 
+            minDate: allowedMonthStart, // Aktivizējam 22. datuma limitu
+            disable: disabledDates,
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 const formatStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
                 if (myDates.some(m => m.date === formatStr)) dayElem.classList.add("booked-by-me");
@@ -737,6 +751,36 @@
         const nodala = barsNames.includes(currentUser) ? "Bars" : "Virtuve";
         const selectedDates = fpInstance.selectedDates.map(d => fpInstance.formatDate(d, "Y-m-d"));
         if(selectedDates.length === 0) return alert("Atzīmē vismaz vienu datumu!");
+        
+        // 2. NOTEIKUMS: Pārbaudām, vai nav pārsniegts 6 dienu limits mēnesī
+        let monthCounts = {};
+        
+        // Saskaitām jau iepriekš pieteiktās brīvdienas (neiekļaujot atvaļinājumus)
+        brivdienasData.forEach(item => {
+            if (item.vards === currentUser && item.statuss !== "Atvaļinājums") {
+                let d = new Date(item.datums);
+                let mKey = d.getFullYear() + "-" + d.getMonth();
+                monthCounts[mKey] = (monthCounts[mKey] || 0) + 1;
+            }
+        });
+        
+        // Pieskaitām klāt tās, ko viņš mēģina pieteikt tieši tagad
+        let limitExceeded = false;
+        for (let sd of selectedDates) {
+            let d = new Date(sd);
+            let mKey = d.getFullYear() + "-" + d.getMonth();
+            monthCounts[mKey] = (monthCounts[mKey] || 0) + 1;
+            
+            if (monthCounts[mKey] > 6) {
+                limitExceeded = true;
+                break;
+            }
+        }
+        
+        if (limitExceeded) {
+            return alert("⚠️ Tu nevari pieteikt vairāk kā 6 brīvdienas vienā mēnesī!\nSistēma tās nesaglabāja.");
+        }
+
         const btn = event.target; const originalText = btn.innerText; btn.innerText = "⏳ Saglabā..."; btn.disabled = true;
         document.getElementById('briv-status').innerText = "Saglabā datus...";
         
