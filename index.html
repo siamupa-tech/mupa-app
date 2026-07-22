@@ -266,10 +266,19 @@
     <button class="back-btn" onclick="showDashboard()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Atpakaļ</button>
 </div>
 
+<!-- 7. MANS GRAFIKS EKRĀNS -->
 <div class="card hidden" id="schedule-screen">
     <h2><i class="far fa-calendar-alt" style="color:#3182ce; margin-right:8px;"></i> Mans grafiks</h2>
-    <p id="schedule-month-text" style="color:#718096; margin-bottom:15px; font-weight:bold;"></p>
+    
+    <!-- JAUNUMS: POGAS MĒNEŠU PĀRSLĒGŠANAI -->
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <button id="btn-this-month" class="action-btn" style="margin-top: 0; background: #3182ce; padding: 10px;" onclick="loadSchedule(0)">Šis mēnesis</button>
+        <button id="btn-next-month" class="action-btn" style="margin-top: 0; background: #cbd5e0; color: #4a5568; padding: 10px;" onclick="loadSchedule(1)">Nākamais</button>
+    </div>
+
+    <p id="schedule-month-text" style="color:#718096; margin-bottom:15px; font-weight:bold; text-align:center;"></p>
     <div id="schedule-list-container" style="max-height: 400px; overflow-y: auto; text-align: left; padding-right: 5px; margin-bottom: 20px;"></div>
+    
     <button class="back-btn" onclick="showDashboard()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Atpakaļ</button>
 </div>
 
@@ -893,12 +902,37 @@
 
     function openMySchedule() {
         showScreen('schedule-screen');
+        loadSchedule(0); // Pēc noklusējuma vienmēr atver tekošo mēnesi
+    }
+
+    function loadSchedule(monthOffset) {
+        // Pogu vizuālais noformējums (kura ir aktīva)
+        const btnThis = document.getElementById('btn-this-month');
+        const btnNext = document.getElementById('btn-next-month');
+        
+        if (monthOffset === 0) {
+            btnThis.style.background = "#3182ce"; btnThis.style.color = "white";
+            btnNext.style.background = "#cbd5e0"; btnNext.style.color = "#4a5568";
+        } else {
+            btnNext.style.background = "#3182ce"; btnNext.style.color = "white";
+            btnThis.style.background = "#cbd5e0"; btnThis.style.color = "#4a5568";
+        }
+
         const months = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
-        const now = new Date(); const sheetName = months[now.getMonth()] + " " + now.getFullYear();
+        
+        // Aprēķinām vajadzīgo mēnesi (+0 vai +1 mēnesis uz priekšu)
+        const targetDate = new Date();
+        targetDate.setMonth(targetDate.getMonth() + monthOffset);
+        
+        const sheetName = months[targetDate.getMonth()] + " " + targetDate.getFullYear();
         document.getElementById('schedule-month-text').innerText = sheetName;
+        
         const container = document.getElementById('schedule-list-container');
         container.innerHTML = "<p style='text-align:center; color:#a0aec0;'><i class='fas fa-spinner fa-spin'></i> Meklējam maiņas tabulā...</p>";
-        fetch(webAppUrl, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "get_schedule", name: currentUser, sheetName: sheetName })
+        
+        fetch(webAppUrl, { 
+            method: "POST", headers: { "Content-Type": "text/plain" }, 
+            body: JSON.stringify({ action: "get_schedule", name: currentUser, sheetName: sheetName })
         }).then(res => res.json()).then(res => {
             if(res.status === "ok") {
                 if (res.data && res.data.length > 0) {
@@ -910,9 +944,9 @@
                         html += `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:12px 0;"><strong style="color:#2d3748; font-size:16px;">${item.date}</strong><div style="text-align:right;"><span style="background:#ebf8ff; color:#3182ce; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:15px;">${item.shift}</span>${locBadge}</div></div>`;
                     });
                     container.innerHTML = html;
-                } else container.innerHTML = `<p style='text-align:center; color:#718096;'>${res.msg}</p>`;
-            } else container.innerHTML = `<p style='text-align:center; color:#e53e3e;'>${res.msg}</p>`;
-        }).catch(err => { container.innerHTML = "<p style='text-align:center; color:#e53e3e;'>Kļūda savienojumā.</p>"; });
+                } else container.innerHTML = `<p style='text-align:center; color:#718096;'>Šajā mēnesī (${sheetName}) tev nav ieplānotu maiņu.</p>`;
+            } else container.innerHTML = `<p style='text-align:center; color:#e53e3e;'>Grafiks "${sheetName}" vēl nav publicēts.</p>`;
+        }).catch(err => { container.innerHTML = "<p style='text-align:center; color:#e53e3e;'>Kļūda savienojumā. Pārbaudi internetu.</p>"; });
     }
 
     function openMessageScreen() { showScreen('message-screen'); document.getElementById('private-message-text').value = ""; }
