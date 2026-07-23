@@ -309,7 +309,7 @@
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbzJvKS-TMDiCkHk5DZg1zI9VCXMkVlMKLC3it9v9I0zVXg3v8u5TObhY_tQrT7S0g/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbzwpxHhw-xg_66caf50bRnO1a-VXbCBEvCJmxTp3DEdl0dkBTM0S6zcNv2y_jW9_dI/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -433,20 +433,36 @@
     function loadActiveWorkers() {
         const list = document.getElementById('active-workers-list');
         list.innerHTML = '<span style="font-size: 13px; color: #718096;">Ielādē datus...</span>';
+        
         fetch(webAppUrl, {
             method: "POST", headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({ action: "get_active" })
         }).then(res => res.json()).then(res => {
             if (res.status === "ok" && res.data.length > 0) {
                 list.innerHTML = "";
-                res.data.forEach(name => {
+                res.data.forEach(worker => {
                     let chip = document.createElement("span");
                     chip.className = "worker-chip";
-                    chip.innerHTML = '<i class="fas fa-circle" style="font-size:10px;"></i> ' + name;
+                    
+                    // Pārbaudām, vai darbinieks ir Alus Muižā
+                    if (worker.location === "Alus Muiža") {
+                        // Oranžais Muižas dizains
+                        chip.style.background = "#feebc8"; // Viegli oranžs fons
+                        chip.style.color = "#c05621";      // Tumšāk oranžs teksts
+                        chip.innerHTML = '<i class="fas fa-beer" style="font-size:11px; margin-right:4px; color:#dd6b20;"></i> ' + worker.name;
+                    } else {
+                        // Standarta Gust. / Virtuves zaļais dizains
+                        chip.innerHTML = '<i class="fas fa-circle" style="font-size:10px;"></i> ' + worker.name;
+                    }
+                    
                     list.appendChild(chip);
                 });
-            } else list.innerHTML = '<span style="font-size: 13px; color: #a0aec0;">Šobrīd neviens nav atzīmējies.</span>';
-        }).catch(err => { list.innerHTML = '<span style="font-size: 13px; color: #e53e3e;">Neizdevās ielādēt.</span>'; });
+            } else {
+                list.innerHTML = '<span style="font-size: 13px; color: #a0aec0;">Šobrīd neviens nav atzīmējies.</span>';
+            }
+        }).catch(err => {
+            list.innerHTML = '<span style="font-size: 13px; color: #e53e3e;">Neizdevās ielādēt.</span>';
+        });
     }
 
     function showDashboard() { showScreen('dashboard-screen'); }
