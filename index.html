@@ -132,6 +132,13 @@
             <li>Ielādē paziņojumus...</li>
         </ul>
     </div>
+    <!-- Lielās tīrīšanas modulis -->
+    <div class="info-wall" style="background: #fffaf0; border-left-color: #ed8936; margin-bottom: 25px;">
+        <h4 style="color: #dd6b20; margin: 0 0 10px 0;"><i class="fas fa-broom" style="margin-right: 8px;"></i> Lielā bāra tīrīšana (4h)</h4>
+        <div id="cleaning-status-container">
+            <span style="font-size: 13px; color: #718096;">Ielādē datus...</span>
+        </div>
+    </div>
     <div class="active-workers-box" id="active-workers-container">
         <h4><i class="fas fa-users" style="margin-right: 8px;"></i> Šobrīd maiņā:</h4>
         <div id="active-workers-list">
@@ -309,7 +316,7 @@
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbzwpxHhw-xg_66caf50bRnO1a-VXbCBEvCJmxTp3DEdl0dkBTM0S6zcNv2y_jW9_dI/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycby0fg5ZUQecyd4h9cuO09v_BtGGuudKHZKY2VyvmsPYLG9V0d_znirITNyMUWVxpVA/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -427,6 +434,7 @@
         
         loadInfoWall();
         loadActiveWorkers(); 
+        loadCleaningStatus();
         showScreen('dashboard-screen');
     }
 
@@ -463,6 +471,51 @@
         }).catch(err => {
             list.innerHTML = '<span style="font-size: 13px; color: #e53e3e;">Neizdevās ielādēt.</span>';
         });
+    }
+
+    function loadCleaningStatus() {
+        const container = document.getElementById('cleaning-status-container');
+        fetch(webAppUrl, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "get_cleaning" }) })
+        .then(res => res.json()).then(res => {
+            if(res.status === "ok") {
+                if (!res.date) {
+                    container.innerHTML = "<span style='color:#a0aec0; font-size:14px;'>Šobrīd nav plānota neviena tīrīšana.</span>";
+                    return;
+                }
+                let count = 0;
+                if(res.w1) count++;
+                if(res.w2) count++;
+                
+                let html = `<div style="font-size:15px; font-weight:bold; color:#2d3748; margin-bottom:5px;">📅 Nākamā reize: ${res.date}</div>`;
+                html += `<div style="font-size:14px; color:#4a5568; margin-bottom:10px;">Brīvprātīgie: ${count}/2</div>`;
+                
+                if (count > 0) {
+                    html += `<ul style="margin-top:0; margin-bottom:10px; color:#718096; font-size:14px;">`;
+                    if(res.w1) html += `<li>${res.w1}</li>`;
+                    if(res.w2) html += `<li>${res.w2}</li>`;
+                    html += `</ul>`;
+                }
+                
+                if (res.w1 === currentUser || res.w2 === currentUser) {
+                    html += `<button class="action-btn" style="background:#48bb78; color:white; padding:10px; margin-top:5px; pointer-events:none;">✅ Tu esi pieteicies!</button>`;
+                } else if (count >= 2) {
+                    html += `<button class="action-btn" style="background:#a0aec0; color:white; padding:10px; margin-top:5px; pointer-events:none;">Vietas pilnas</button>`;
+                } else {
+                    html += `<button class="action-btn" style="background:#ed8936; color:white; padding:10px; margin-top:5px;" onclick="applyForCleaning(this)">🧽 Pieteikties tīrīšanai</button>`;
+                }
+                container.innerHTML = html;
+            } else container.innerHTML = `<span style="color:#e53e3e; font-size:13px;">Nav izveidota 'Tirisana' lapa tabulā.</span>`;
+        }).catch(err => { container.innerHTML = "<span style='color:#e53e3e; font-size:13px;'>Kļūda savienojumā.</span>"; });
+    }
+
+    function applyForCleaning(btn) {
+        const orig = btn.innerText;
+        btn.innerText = "⏳ Saglabā..."; btn.disabled = true;
+        fetch(webAppUrl, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "signup_cleaning", name: currentUser }) })
+        .then(res => res.json()).then(res => {
+            if(res.status === "ok") { alert("✅ Super! Tu esi reģistrēts tīrīšanai!"); loadCleaningStatus(); }
+            else { alert("⚠️ Kļūda: " + res.msg); loadCleaningStatus(); }
+        }).catch(err => { alert("Savienojuma kļūda."); btn.innerText = orig; btn.disabled = false; });
     }
 
     function showDashboard() { showScreen('dashboard-screen'); }
@@ -1091,6 +1144,7 @@
         if(btn) btn.classList.add("fa-spin"); 
         loadInfoWall(); 
         loadActiveWorkers(); 
+        loadCleaningStatus();
         setTimeout(() => { if(btn) btn.classList.remove("fa-spin"); }, 1000);
     }
 
