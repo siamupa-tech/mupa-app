@@ -312,11 +312,23 @@
     <button class="back-btn" onclick="showDashboard()">Atpakaļ</button>
 </div>
 
+<!-- Kolēģu maiņu modālis -->
+    <div id="colleagues-modal" style="display: none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(2px);">
+        <div style="background:white; width:90%; max-width:400px; border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-bottom:15px;">
+                <h3 id="colleagues-modal-title" style="margin:0; color:#2d3748; font-size:18px;">Komanda</h3>
+                <button onclick="document.getElementById('colleagues-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#a0aec0; cursor:pointer; padding:0 5px;">&times;</button>
+            </div>
+            <div id="colleagues-modal-list" style="max-height:50vh; overflow-y:auto; padding-right:5px;">
+                <!-- Dati ielādēsies šeit -->
+            </div>
+        </div>
+    </div>
 <script>
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbzbPfX6WG-HlTy3-L_75oqP2gHSiFTedvsw5_vIp9uO8KXMlEdPLce0a7voZ73cnm0/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbzuJv_KffiO-jMPhMUrc1nh-N3IKKJ0IW7y0DFYgVg26gRmUSOWTROnJEn4p4ELjBM/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -1048,11 +1060,13 @@
                         }
                         
                         // Mainām fona krāsu un stilus, ja ir brīvdiena (Sestdiena vai Svētdiena)
+                        // Mainām fona krāsu un stilus, ja ir brīvdiena
                         let rowBg = isWeekend ? "background: #edf2f7; border-radius: 8px;" : "background: transparent;";
                         
-                        html += `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:12px 10px; margin-bottom:4px; ${rowBg}">
+                        // JAUNUMS: Pievienots onclick notikums un cursor:pointer
+                        html += `<div onclick="openColleaguesModal('${sheetName}', '${item.date}')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:12px 10px; margin-bottom:4px; ${rowBg}">
                             <div>
-                                <strong style="color:#2d3748; font-size:16px;">${item.date}</strong>
+                                <strong style="color:#2d3748; font-size:16px;">${item.date} <i class="fas fa-users" style="color:#cbd5e0; font-size:12px; margin-left:6px;"></i></strong>
                                 <div style="color:#718096; font-size:13px; margin-top:3px;">${weekdayName}</div>
                             </div>
                             <div style="text-align:right;">
@@ -1065,6 +1079,44 @@
                 } else container.innerHTML = `<p style='text-align:center; color:#718096;'>Šajā mēnesī (${sheetName}) tev nav ieplānotu maiņu.</p>`;
             } else container.innerHTML = `<p style='text-align:center; color:#e53e3e;'>Grafiks "${sheetName}" vēl nav publicēts.</p>`;
         }).catch(err => { container.innerHTML = "<p style='text-align:center; color:#e53e3e;'>Kļūda savienojumā. Pārbaudi internetu.</p>"; });
+    }
+
+function openColleaguesModal(sheetName, date) {
+        const modal = document.getElementById('colleagues-modal');
+        const list = document.getElementById('colleagues-modal-list');
+        document.getElementById('colleagues-modal-title').innerText = `${date} maiņas`;
+        
+        modal.classList.remove('hidden');
+        list.innerHTML = "<p style='text-align:center; color:#718096;'><i class='fas fa-spinner fa-spin'></i> Meklē kolēģus...</p>";
+        
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "get_day_schedule", sheetName: sheetName, date: date })
+        }).then(res => res.json()).then(res => {
+            if (res.status === "ok") {
+                if (res.data.length > 0) {
+                    let html = "";
+                    res.data.forEach(worker => {
+                        // Izceļam pašu darbinieku sarakstā
+                        let isMe = worker.name === currentUser;
+                        let nameStyle = isMe ? "color:#2b6cb0; font-weight:bold;" : "color:#4a5568; font-weight:500;";
+                        let badgeStyle = isMe ? "background:#bee3f8; color:#2b6cb0;" : "background:#edf2f7; color:#718096;";
+                        
+                        html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #e2e8f0;">
+                            <span style="${nameStyle}"><i class="fas ${isMe ? 'fa-user-check' : 'fa-user'}" style="margin-right:8px; color:#a0aec0;"></i>${worker.name}</span>
+                            <span style="${badgeStyle} padding:4px 10px; border-radius:6px; font-size:14px; font-weight:bold;">${worker.shift}</span>
+                        </div>`;
+                    });
+                    list.innerHTML = html;
+                } else {
+                    list.innerHTML = "<p style='text-align:center; color:#a0aec0; margin-top:20px;'>Šajā dienā grafiks vēl ir tukšs.</p>";
+                }
+            } else {
+                list.innerHTML = `<p style='text-align:center; color:#e53e3e; margin-top:20px;'>${res.msg}</p>`;
+            }
+        }).catch(err => {
+            list.innerHTML = "<p style='text-align:center; color:#e53e3e; margin-top:20px;'>Kļūda savienojumā.</p>";
+        });
     }
 
     function openMessageScreen() { showScreen('message-screen'); document.getElementById('private-message-text').value = ""; }
