@@ -976,7 +976,7 @@
     }
 
     function loadSchedule(monthOffset) {
-        // Pogu vizuālais noformējums (kura ir aktīva)
+        // Pogu vizuālais noformējums
         const btnThis = document.getElementById('btn-this-month');
         const btnNext = document.getElementById('btn-next-month');
         
@@ -990,7 +990,7 @@
 
         const months = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
         
-        // Aprēķinām vajadzīgo mēnesi (+0 vai +1 mēnesis uz priekšu)
+        // Nosakām gadu un mēnesi, kuru šobrīd skatāmies
         const targetDate = new Date();
         targetDate.setMonth(targetDate.getMonth() + monthOffset);
         
@@ -1007,11 +1007,38 @@
             if(res.status === "ok") {
                 if (res.data && res.data.length > 0) {
                     let html = "";
+                    const wdNames = ["Svētdiena", "Pirmdiena", "Otrdiena", "Trešdiena", "Ceturtdiena", "Piektdiena", "Sestdiena"];
+                    
                     res.data.forEach(item => {
                         let locBadge = "";
                         if (item.location === "Alus Muiža") locBadge = `<div style="margin-top:6px;"><span style="background:#feebc8; color:#c05621; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-beer" style="margin-right:4px;"></i> Alus Muiža</span></div>`;
                         else if (item.location === "Gust.") locBadge = `<div style="margin-top:6px;"><span style="background:#c6f6d5; color:#22543d; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-martini-glass-citrus" style="margin-right:4px;"></i> Gust.</span></div>`;
-                        html += `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:12px 0;"><strong style="color:#2d3748; font-size:16px;">${item.date}</strong><div style="text-align:right;"><span style="background:#ebf8ff; color:#3182ce; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:15px;">${item.shift}</span>${locBadge}</div></div>`;
+                        
+                        // Aprēķinām nedēļas dienu šim datumam
+                        let dayNum = parseInt(item.date);
+                        let weekdayName = "";
+                        let isWeekend = false;
+                        
+                        if (!isNaN(dayNum)) {
+                            let dObj = new Date(targetDate.getFullYear(), targetDate.getMonth(), dayNum);
+                            let wd = dObj.getDay();
+                            isWeekend = (wd === 0 || wd === 6); // 0 ir Svētdiena, 6 ir Sestdiena
+                            weekdayName = wdNames[wd];
+                        }
+                        
+                        // Mainām fona krāsu un stilus, ja ir brīvdiena (Sestdiena vai Svētdiena)
+                        let rowBg = isWeekend ? "background: #edf2f7; border-radius: 8px;" : "background: transparent;";
+                        
+                        html += `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:12px 10px; margin-bottom:4px; ${rowBg}">
+                            <div>
+                                <strong style="color:#2d3748; font-size:16px;">${item.date}</strong>
+                                <div style="color:#718096; font-size:13px; margin-top:3px;">${weekdayName}</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="background:#ebf8ff; color:#3182ce; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:15px;">${item.shift}</span>
+                                ${locBadge}
+                            </div>
+                        </div>`;
                     });
                     container.innerHTML = html;
                 } else container.innerHTML = `<p style='text-align:center; color:#718096;'>Šajā mēnesī (${sheetName}) tev nav ieplānotu maiņu.</p>`;
