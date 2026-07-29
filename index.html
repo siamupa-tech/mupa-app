@@ -422,13 +422,14 @@
 
     function setupDashboard() {
         document.getElementById('welcome-text').innerText = "Sveiki, " + currentUser + "!";
-        document.getElementById('shift-actions').classList.add('hidden');
         
+        // Visiem (gan darbiniekiem, gan vadībai) parādām maiņu pogas!
+        document.getElementById('shift-actions').classList.remove('hidden');
+        
+        // Pārbaudām, vai rādīt arī lielo "Vadītāja paneli" (to rāda TIKAI vadībai)
         if (adminNames.includes(currentUser)) {
-            document.getElementById('shift-actions').classList.add('hidden');
             document.getElementById('btn-admin').classList.remove('hidden');
         } else {
-            document.getElementById('shift-actions').classList.remove('hidden');
             document.getElementById('btn-admin').classList.add('hidden');
         }
         
