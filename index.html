@@ -316,7 +316,7 @@
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycby0fg5ZUQecyd4h9cuO09v_BtGGuudKHZKY2VyvmsPYLG9V0d_znirITNyMUWVxpVA/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbzbPfX6WG-HlTy3-L_75oqP2gHSiFTedvsw5_vIp9uO8KXMlEdPLce0a7voZ73cnm0/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -662,7 +662,12 @@
         if (isForce && forceReason !== "") baseComment = forceReason + " " + baseComment;
         
         const time = new Date().toLocaleString("lv-LV");
-        const autoSheet = barsNames.includes(currentUser) ? "Bars" : "Virtuve";
+        let autoSheet = "Bars";
+        if (adminNames.includes(currentUser)) {
+            autoSheet = "Vadiba";
+        } else if (virtuveNames.includes(currentUser)) {
+            autoSheet = "Virtuve";
+        }
         
         fetch(webAppUrl, {
             method: "POST", headers: { "Content-Type": "text/plain" },
@@ -751,7 +756,12 @@
         if(selectedDates.length !== 2) return alert("Iezīmē sākuma un beigu datumu!");
         const dateFrom = fpVacationInstance.formatDate(selectedDates[0], "Y-m-d");
         const dateTo = fpVacationInstance.formatDate(selectedDates[1], "Y-m-d");
-        const nodala = barsNames.includes(currentUser) ? "Bars" : "Virtuve"; 
+        let nodala = "Bars";
+        if (adminNames.includes(currentUser)) {
+            nodala = "Vadiba";
+        } else if (virtuveNames.includes(currentUser)) {
+            nodala = "Virtuve";
+        } 
         const btn = event.target;
         const originalText = btn.innerText;
         btn.innerText = "⏳ Saglabā...";
@@ -827,7 +837,12 @@
     }
 
     function sendBriv() {
-        const nodala = barsNames.includes(currentUser) ? "Bars" : "Virtuve";
+        let nodala = "Bars";
+        if (adminNames.includes(currentUser)) {
+            nodala = "Vadiba";
+        } else if (virtuveNames.includes(currentUser)) {
+            nodala = "Virtuve";
+        }
         const selectedDates = fpInstance.selectedDates.map(d => fpInstance.formatDate(d, "Y-m-d"));
         if(selectedDates.length === 0) return alert("Atzīmē vismaz vienu datumu!");
         
@@ -890,7 +905,12 @@
         document.getElementById('hours-total-text').innerText = "Ielādē datus...";
         document.getElementById('hours-sub-text').innerText = "";
         document.getElementById('hours-list-container').innerHTML = "";
-        const nodala = barsNames.includes(currentUser) ? "Bars" : "Virtuve";
+        let nodala = "Bars";
+        if (adminNames.includes(currentUser)) {
+            nodala = "Vadiba";
+        } else if (virtuveNames.includes(currentUser)) {
+            nodala = "Virtuve";
+        }
         
         fetch(webAppUrl, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "get_hours", name: currentUser, nodala: nodala })
         }).then(res => res.text()).then(text => {
