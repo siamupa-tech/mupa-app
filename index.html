@@ -1055,15 +1055,13 @@
                         if (!isNaN(dayNum)) {
                             let dObj = new Date(targetDate.getFullYear(), targetDate.getMonth(), dayNum);
                             let wd = dObj.getDay();
-                            isWeekend = (wd === 0 || wd === 6); // 0 ir Svētdiena, 6 ir Sestdiena
+                            isWeekend = (wd === 0 || wd === 6);
                             weekdayName = wdNames[wd];
                         }
                         
-                        // Mainām fona krāsu un stilus, ja ir brīvdiena (Sestdiena vai Svētdiena)
                         // Mainām fona krāsu un stilus, ja ir brīvdiena
                         let rowBg = isWeekend ? "background: #edf2f7; border-radius: 8px;" : "background: transparent;";
                         
-                        // JAUNUMS: Pievienots onclick notikums un cursor:pointer
                         html += `<div onclick="openColleaguesModal('${sheetName}', '${item.date}')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:12px 10px; margin-bottom:4px; ${rowBg}">
                             <div>
                                 <strong style="color:#2d3748; font-size:16px;">${item.date} <i class="fas fa-users" style="color:#cbd5e0; font-size:12px; margin-left:6px;"></i></strong>
@@ -1081,12 +1079,12 @@
         }).catch(err => { container.innerHTML = "<p style='text-align:center; color:#e53e3e;'>Kļūda savienojumā. Pārbaudi internetu.</p>"; });
     }
 
-function openColleaguesModal(sheetName, date) {
+    function openColleaguesModal(sheetName, date) {
         const modal = document.getElementById('colleagues-modal');
         const list = document.getElementById('colleagues-modal-list');
         document.getElementById('colleagues-modal-title').innerText = `${date} maiņas`;
         
-        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
         list.innerHTML = "<p style='text-align:center; color:#718096;'><i class='fas fa-spinner fa-spin'></i> Meklē kolēģus...</p>";
         
         fetch(webAppUrl, {
@@ -1097,7 +1095,6 @@ function openColleaguesModal(sheetName, date) {
                 if (res.data.length > 0) {
                     let html = "";
                     res.data.forEach(worker => {
-                        // Izceļam pašu darbinieku sarakstā
                         let isMe = worker.name === currentUser;
                         let nameStyle = isMe ? "color:#2b6cb0; font-weight:bold;" : "color:#4a5568; font-weight:500;";
                         let badgeStyle = isMe ? "background:#bee3f8; color:#2b6cb0;" : "background:#edf2f7; color:#718096;";
