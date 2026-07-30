@@ -328,7 +328,7 @@
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbwRY4Z9Zd-vZTZln_z_h3KSX-42vqu0JDrJCJgnV5qdqOelFvGa_CzOvztvHqbsfw/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbwAnobNpJ-I91N7CLH4-CTEqjTykYHBTJxLinZ9Rxz5kRK7x6j4mazzPh3AlLZweyE/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -1090,29 +1090,50 @@
         fetch(webAppUrl, {
             method: "POST", headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({ action: "get_day_schedule", sheetName: sheetName, date: date })
-        }).then(res => res.json()).then(res => {
-            if (res.status === "ok") {
-                if (res.data.length > 0) {
-                    let html = "";
-                    res.data.forEach(worker => {
-                        let isMe = worker.name === currentUser;
-                        let nameStyle = isMe ? "color:#2b6cb0; font-weight:bold;" : "color:#4a5568; font-weight:500;";
-                        let badgeStyle = isMe ? "background:#bee3f8; color:#2b6cb0;" : "background:#edf2f7; color:#718096;";
-                        
-                        html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #e2e8f0;">
-                            <span style="${nameStyle}"><i class="fas ${isMe ? 'fa-user-check' : 'fa-user'}" style="margin-right:8px; color:#a0aec0;"></i>${worker.name}</span>
-                            <span style="${badgeStyle} padding:4px 10px; border-radius:6px; font-size:14px; font-weight:bold;">${worker.shift}</span>
-                        </div>`;
-                    });
-                    list.innerHTML = html;
+        }).then(res => res.text()).then(text => { 
+            try {
+                let res = JSON.parse(text);
+                if (res.status === "ok") {
+                    if (res.data.length > 0) {
+                        let html = "";
+                        res.data.forEach(worker => {
+                            let isMe = worker.name === currentUser;
+                            let nameStyle = isMe ? "color:#2b6cb0; font-weight:bold;" : "color:#4a5568; font-weight:500;";
+                            
+                            // Nosakām dizainu pēc lokācijas
+                            let badgeBg = "#edf2f7"; 
+                            let badgeColor = "#718096"; 
+                            let icon = "";
+                            
+                            if (worker.location === "Alus Muiža") {
+                                badgeBg = "#feebc8"; // Oranžs fons
+                                badgeColor = "#c05621"; // Oranžs teksts
+                                icon = '<i class="fas fa-beer" style="margin-right:5px;"></i>';
+                            } else if (worker.location === "Gust.") {
+                                badgeBg = "#c6f6d5"; // Zaļš fons
+                                badgeColor = "#22543d"; // Zaļš teksts
+                                icon = '<i class="fas fa-martini-glass-citrus" style="margin-right:5px;"></i>';
+                            }
+                            
+                            html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #e2e8f0;">
+                                <span style="${nameStyle}"><i class="fas ${isMe ? 'fa-user-check' : 'fa-user'}" style="margin-right:8px; color:${isMe ? '#3182ce' : '#a0aec0'};"></i>${worker.name}</span>
+                                <span style="background:${badgeBg}; color:${badgeColor}; padding:4px 10px; border-radius:6px; font-size:14px; font-weight:bold;">${icon}${worker.shift}</span>
+                            </div>`;
+                        });
+                        list.innerHTML = html;
+                    } else {
+                        list.innerHTML = "<p style='text-align:center; color:#a0aec0; margin-top:20px;'>Šajā dienā grafiks vēl ir tukšs.</p>";
+                    }
                 } else {
-                    list.innerHTML = "<p style='text-align:center; color:#a0aec0; margin-top:20px;'>Šajā dienā grafiks vēl ir tukšs.</p>";
+                    list.innerHTML = `<p style='text-align:center; color:#e53e3e; margin-top:20px;'>Kļūda no servera: ${res.msg}</p>`;
                 }
-            } else {
-                list.innerHTML = `<p style='text-align:center; color:#e53e3e; margin-top:20px;'>${res.msg}</p>`;
+            } catch (e) {
+                list.innerHTML = `<div style='text-align:center; color:#e53e3e; margin-top:20px; font-size:13px;'>
+                    <b>Sistēmas kļūda:</b><br>${text.substring(0, 150)}...
+                </div>`;
             }
         }).catch(err => {
-            list.innerHTML = "<p style='text-align:center; color:#e53e3e; margin-top:20px;'>Kļūda savienojumā.</p>";
+            list.innerHTML = `<p style='text-align:center; color:#e53e3e; margin-top:20px;'>Savienojuma problēma: ${err.message}</p>`;
         });
     }
 
