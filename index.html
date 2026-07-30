@@ -328,7 +328,7 @@
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbwAnobNpJ-I91N7CLH4-CTEqjTykYHBTJxLinZ9Rxz5kRK7x6j4mazzPh3AlLZweyE/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbwh9HaHXx4aoz9NHcfYeOv1Nhj_0nrheilMFvQj4hfhSa6pNGrboWMhHuSKNuh4A70/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -1059,8 +1059,10 @@
                             weekdayName = wdNames[wd];
                         }
                         
-                        // Mainām fona krāsu un stilus, ja ir brīvdiena
-                        let rowBg = isWeekend ? "background: #edf2f7; border-radius: 8px;" : "background: transparent;";
+                        // Gudrais fons, kas pielāgojas dienas/nakts režīmam
+                        let isDark = document.body.classList.contains("dark-mode");
+                        let weekendBg = isDark ? "background: rgba(255, 255, 255, 0.08);" : "background: #edf2f7;";
+                        let rowBg = isWeekend ? `${weekendBg} border-radius: 8px;` : "background: transparent;";
                         
                         html += `<div onclick="openColleaguesModal('${sheetName}', '${item.date}')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:12px 10px; margin-bottom:4px; ${rowBg}">
                             <div>
