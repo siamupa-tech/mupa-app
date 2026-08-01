@@ -158,6 +158,7 @@
     
     <button class="action-btn btn-stats" onclick="openMyHours()"><i class="fas fa-history" style="margin-right: 8px;"></i> Mana statistika</button>
     <button class="action-btn" style="background: #3182ce; color: white;" onclick="openMySchedule()"><i class="far fa-calendar-alt" style="margin-right: 8px;"></i> Mans grafiks</button>
+    <button class="action-btn" style="background: #ed8936; color: black; margin-top: 10px;" onclick="showReservations()"><i class="fas fa-calendar-check" style="margin-right: 8px;"></i> Rezervācijas</button>
     <button class="action-btn btn-briv" onclick="openBrivdienas()"><i class="fas fa-calendar-days" style="margin-right: 8px;"></i> Pieteikt / Atcelt Brīvdienas</button>
     <button class="action-btn" style="background: #805ad5; color: white;" onclick="openMessageScreen()"><i class="fas fa-envelope" style="margin-right: 8px;"></i> Ziņa vadītājam</button>
     <button class="action-btn" style="background: #e53e3e; color: white;" onclick="openInventoryScreen()"><i class="fas fa-boxes-packing" style="margin-right: 8px;"></i> Noliktavas brīdinājumi</button>
@@ -324,11 +325,76 @@
             </div>
         </div>
     </div>
+    <!-- REZERVĀCIJU SADAĻA -->
+    <div id="reservations-section" class="hidden">
+       <div style="display:flex; align-items:center; margin-bottom:20px;">
+            <button class="back-btn" onclick="showDashboard()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Atpakaļ</button>
+            <h2 style="margin:0 0 0 15px; color:#2d3748;">Rezervācijas</h2>
+        </div>
+
+        <!-- Datuma pārslēdzējs -->
+        <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:10px; border-radius:12px; margin-bottom:15px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+            <button onclick="changeResDate(-1)" style="background:#edf2f7; border:none; padding:10px 15px; border-radius:8px; color:#4a5568; font-weight:bold;"><i class="fas fa-chevron-left"></i></button>
+            <div id="res-current-date" style="font-weight:bold; font-size:16px; color:#2b6cb0;">Šodien</div>
+            <button onclick="changeResDate(1)" style="background:#edf2f7; border:none; padding:10px 15px; border-radius:8px; color:#4a5568; font-weight:bold;"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <button onclick="openAddResModal()" style="width:100%; padding:15px; background:#48bb78; color:white; border:none; border-radius:12px; font-size:16px; font-weight:bold; margin-bottom:20px; box-shadow:0 4px 6px rgba(72,187,120,0.3);">
+            <i class="fas fa-plus" style="margin-right:8px;"></i> Pievienot rezervāciju
+        </button>
+
+        <div id="reservations-list">
+            <!-- Šeit ielādēsies kartiņas -->
+        </div>
+    </div>
+
+    <!-- PIEVIENOT REZERVĀCIJU MODĀLIS -->
+    <div id="add-res-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(2px);">
+        <div style="background:white; width:90%; max-width:400px; border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.2); max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; color:#2d3748;">Jauna rezervācija</h3>
+                <button onclick="document.getElementById('add-res-modal').style.display='none'" style="background:none; border:none; font-size:24px; color:#a0aec0; cursor:pointer;">&times;</button>
+            </div>
+            
+            <form id="res-form" onsubmit="submitReservation(event)">
+                <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px; color:#4a5568;">Datums *</label>
+                <input type="date" id="res-date" required style="width:100%; padding:12px; border:1px solid #cbd5e0; border-radius:8px; margin-bottom:12px; box-sizing:border-box;">
+                
+                <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px; color:#4a5568;">Laiks *</label>
+                <input type="time" id="res-time" required style="width:100%; padding:12px; border:1px solid #cbd5e0; border-radius:8px; margin-bottom:12px; box-sizing:border-box;">
+                
+                <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px; color:#4a5568;">Vārds *</label>
+                <input type="text" id="res-name" required placeholder="Klienta vārds" style="width:100%; padding:12px; border:1px solid #cbd5e0; border-radius:8px; margin-bottom:12px; box-sizing:border-box;">
+                
+                <div style="display:flex; gap:10px; margin-bottom:12px;">
+                    <div style="flex:1;">
+                        <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px; color:#4a5568;">Cilvēku sk. *</label>
+                        <input type="number" id="res-pax" required min="1" placeholder="4" style="width:100%; padding:12px; border:1px solid #cbd5e0; border-radius:8px; box-sizing:border-box;">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px; color:#4a5568;">Bārs *</label>
+                        <select id="res-bar" required style="width:100%; padding:12px; border:1px solid #cbd5e0; border-radius:8px; box-sizing:border-box; background:white;">
+                            <option value="Gust.">Gust.</option>
+                            <option value="Alus Muiža">Alus Muiža</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px; color:#4a5568;">Telefons (fakultatīvi)</label>
+                <input type="tel" id="res-phone" placeholder="2xxxxxxx" style="width:100%; padding:12px; border:1px solid #cbd5e0; border-radius:8px; margin-bottom:12px; box-sizing:border-box;">
+                
+                <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:14px; color:#4a5568;">Komentārs</label>
+                <textarea id="res-comment" placeholder="Piem. grib ārā, vai kādas alerģijas..." rows="2" style="width:100%; padding:12px; border:1px solid #cbd5e0; border-radius:8px; margin-bottom:15px; box-sizing:border-box; font-family:inherit;"></textarea>
+                
+                <button id="res-submit-btn" type="submit" style="width:100%; padding:15px; background:#3182ce; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px;">Saglabāt</button>
+            </form>
+        </div>
+    </div>
 <script>
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycby3lFE3Vq3zPUOdW6gvVsQmQU61zm0GPkJ4jy5HxKNP6qkZGZortGfkZCkly23ZHJA/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbyxfolW9FEfBEvteSHF0e9WUT2utKjadNYzeaOtqTeuRNiMYc6xFl2njkMrciE5DqQ/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -1277,7 +1343,136 @@
         loadAdminMessages({ innerHTML: "", disabled: false }); 
         setTimeout(() => { if(btn) btn.classList.remove("fa-spin"); }, 1000);
     }
-</script>
+    // ==========================================
+    // REZERVĀCIJU LOĢIKA
+    // ==========================================
+    let currentResDate = new Date();
 
+    function showReservations() {
+        showScreen('reservations-section'); // Izmantojam tavas aplikācijas iebūvēto logu pārslēdzēju!
+        currentResDate = new Date(); // Vienmēr atverot rāda šodienu
+        loadReservations();
+    }
+
+    function changeResDate(offset) {
+        currentResDate.setDate(currentResDate.getDate() + offset);
+        loadReservations();
+    }
+
+    function loadReservations() {
+        const list = document.getElementById('reservations-list');
+        if (!list) return; // Ja nevar atrast sarakstu, pārtrauc darbību
+        
+        list.innerHTML = "<p style='text-align:center; color:#718096;'><i class='fas fa-spinner fa-spin'></i> Lādē datus...</p>";
+        
+        // Noformējam datumu DD.MM.YYYY formātā priekš tabulas
+        let dd = String(currentResDate.getDate()).padStart(2, '0');
+        let mm = String(currentResDate.getMonth() + 1).padStart(2, '0');
+        let yyyy = currentResDate.getFullYear();
+        let searchDate = `${dd}.${mm}.${yyyy}`;
+        
+        // Atjaunojam virsrakstu
+        let today = new Date();
+        let isToday = (today.getDate() === currentResDate.getDate() && today.getMonth() === currentResDate.getMonth());
+        document.getElementById('res-current-date').innerText = isToday ? `Šodien (${searchDate})` : searchDate;
+
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "get_reservations", date: searchDate })
+        }).then(res => res.json()).then(res => {
+            if(res.status === "ok") {
+                if(res.data.length > 0) {
+                    let html = "";
+                    res.data.forEach(r => {
+                        let bg = r.bar === "Alus Muiža" ? "#fffaf0" : "#f0fff4";
+                        let border = r.bar === "Alus Muiža" ? "#fbd38d" : "#9ae6b4";
+                        let iconColor = r.bar === "Alus Muiža" ? "#dd6b20" : "#38a169";
+                        let icon = r.bar === "Alus Muiža" ? "fa-beer" : "fa-martini-glass-citrus";
+                        
+                        // WhatsApp pogas ģenerēšana, ja ir telefons
+                        let phoneBtn = "";
+                        if (r.phone && r.phone.length > 5) {
+                            let cleanNum = r.phone.replace(/\s+/g, '');
+                            if (!cleanNum.startsWith("+371")) cleanNum = "+371" + cleanNum;
+                            phoneBtn = `<a href="https://wa.me/${cleanNum.replace('+','')}" target="_blank" style="background:#25D366; color:white; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; text-decoration:none; box-shadow:0 2px 4px rgba(0,0,0,0.1);"><i class="fab fa-whatsapp"></i></a>`;
+                        }
+
+                        html += `<div style="background:${bg}; border-left:4px solid ${border}; padding:15px; border-radius:8px; margin-bottom:12px; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                                <div>
+                                    <strong style="font-size:18px; color:#2d3748;">${r.time}</strong>
+                                    <span style="margin-left:10px; font-size:16px; font-weight:bold; color:#1a202c;">${r.clientName}</span>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    ${phoneBtn}
+                                    <span style="background:white; color:#4a5568; padding:4px 10px; border-radius:12px; font-size:14px; font-weight:bold; border:1px solid #e2e8f0;"><i class="fas fa-users" style="color:#a0aec0; margin-right:5px;"></i>${r.pax}</span>
+                                </div>
+                            </div>
+                            <div style="font-size:14px; color:#718096; margin-bottom:8px;">
+                                <i class="fas ${icon}" style="color:${iconColor}; margin-right:5px;"></i> <b>${r.bar}</b>
+                            </div>
+                            ${r.comment ? `<div style="font-size:13px; color:#4a5568; background:rgba(255,255,255,0.6); padding:8px; border-radius:6px; font-style:italic;">"${r.comment}"</div>` : ''}
+                            <div style="font-size:11px; color:#a0aec0; margin-top:8px; text-align:right;">Pievienoja: ${r.addedBy}</div>
+                        </div>`;
+                    });
+                    list.innerHTML = html;
+                } else {
+                    list.innerHTML = `<div style="text-align:center; color:#a0aec0; padding:30px 0;"><i class="fas fa-calendar-times" style="font-size:40px; margin-bottom:10px; opacity:0.5;"></i><br>Šajā datumā nav rezervāciju.</div>`;
+                }
+            } else {
+                list.innerHTML = `<p style="color:#e53e3e; text-align:center;">Kļūda: ${res.msg}</p>`;
+            }
+        });
+    }
+
+    function openAddResModal() {
+        document.getElementById('add-res-modal').style.display = 'flex';
+        // Automātiski ieliekam šodienas datumu un laiku
+        let dd = String(currentResDate.getDate()).padStart(2, '0');
+        let mm = String(currentResDate.getMonth() + 1).padStart(2, '0');
+        let yyyy = currentResDate.getFullYear();
+        document.getElementById('res-date').value = `${yyyy}-${mm}-${dd}`;
+        document.getElementById('res-time').value = "19:00";
+    }
+
+    function submitReservation(e) {
+        e.preventDefault();
+        const btn = document.getElementById('res-submit-btn');
+        btn.innerText = "Saglabā...";
+        btn.disabled = true;
+
+        const data = {
+            action: "add_reservation",
+            name: currentUser,
+            date: document.getElementById('res-date').value,
+            time: document.getElementById('res-time').value,
+            clientName: document.getElementById('res-name').value,
+            pax: document.getElementById('res-pax').value,
+            bar: document.getElementById('res-bar').value,
+            phone: document.getElementById('res-phone').value,
+            comment: document.getElementById('res-comment').value
+        };
+
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify(data)
+        }).then(res => res.json()).then(res => {
+            btn.innerText = "Saglabāt";
+            btn.disabled = false;
+            
+            if(res.status === "ok") {
+                document.getElementById('add-res-modal').style.display = 'none';
+                document.getElementById('res-form').reset();
+                loadReservations();
+            } else {
+                alert("Kļūda: " + res.msg);
+            }
+        }).catch(err => {
+            btn.innerText = "Saglabāt";
+            btn.disabled = false;
+            alert("Savienojuma kļūda.");
+        });
+    }
+</script>
 </body>
 </html>
