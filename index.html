@@ -160,8 +160,6 @@
     <button class="action-btn" style="background: #3182ce; color: white;" onclick="openMySchedule()"><i class="far fa-calendar-alt" style="margin-right: 8px;"></i> Mans grafiks</button>
     <button class="action-btn" style="background: #ed8936; color: black; margin-top: 10px;" onclick="showReservations()"><i class="fas fa-calendar-check" style="margin-right: 8px;"></i> Rezervācijas</button>
     <button class="action-btn btn-briv" onclick="openBrivdienas()"><i class="fas fa-calendar-days" style="margin-right: 8px;"></i> Pieteikt / Atcelt Brīvdienas</button>
-    <button class="action-btn" style="background: #805ad5; color: white;" onclick="openMessageScreen()"><i class="fas fa-envelope" style="margin-right: 8px;"></i> Ziņa vadītājam</button>
-    <button class="action-btn" style="background: #e53e3e; color: white;" onclick="openInventoryScreen()"><i class="fas fa-boxes-packing" style="margin-right: 8px;"></i> Noliktavas brīdinājumi</button>
     <button class="action-btn" style="background: #ed8936; color: white;" onclick="openInstructions()"><i class="fas fa-book" style="margin-right: 8px;"></i> Dokumenti un Receptes</button>
     <button class="action-btn btn-logout" onclick="logout()"><i class="fas fa-right-from-bracket" style="margin-right: 8px;"></i> Mainīt lietotāju (Iziet)</button>
 </div>
@@ -287,22 +285,6 @@
     <p id="schedule-month-text" style="color:#718096; margin-bottom:15px; font-weight:bold; text-align:center;"></p>
     <div id="schedule-list-container" style="max-height: 400px; overflow-y: auto; text-align: left; padding-right: 5px; margin-bottom: 20px;"></div>
     
-    <button class="back-btn" onclick="showDashboard()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Atpakaļ</button>
-</div>
-
-<div class="card hidden" id="message-screen">
-    <h2><i class="fas fa-envelope" style="margin-right: 10px; color: #805ad5;"></i> Ziņa vadītājam</h2>
-    <p style="text-align:center; color:#718096; font-size:14px; margin-bottom:20px;">Šo ziņu redzēs tikai vadītāji savā panelī.</p>
-    <textarea id="private-message-text" rows="4" style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; resize: none; font-family: inherit; font-size: 14px; box-sizing: border-box;" placeholder="Ieraksti savu ziņu šeit..."></textarea>
-    <button class="action-btn" style="background: #805ad5; color: white; margin-top: 15px;" onclick="sendMessageToAdmin(this)">Nosūtīt ziņu</button>
-    <button class="back-btn" onclick="showDashboard()">Atpakaļ</button>
-</div>
-
-<div class="card hidden" id="inventory-screen">
-    <h2><i class="fas fa-triangle-exclamation" style="margin-right: 10px; color: #e53e3e;"></i> Noliktava iet uz beigām?</h2>
-    <p style="text-align:center; color:#4a5568; font-size:14px; margin-bottom:15px;">Ziņo vadībai, ja bārā vai virtuvē kaut kas sāk trūkt (kafija, ledus u.c.).</p>
-    <textarea id="inventory-message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 14px; margin-bottom: 15px; resize: none;" placeholder="Raksti šeit, kas tieši trūkst..."></textarea>
-    <button class="action-btn" style="background: #e53e3e; color: white;" id="send-inventory-btn" onclick="sendInventoryAlert()"><i class="fas fa-paper-plane" style="margin-right: 8px;"></i> Nosūtīt brīdinājumu</button>
     <button class="back-btn" onclick="showDashboard()"><i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Atpakaļ</button>
 </div>
 
@@ -1207,16 +1189,6 @@
 
     function openMessageScreen() { showScreen('message-screen'); document.getElementById('private-message-text').value = ""; }
 
-    function sendMessageToAdmin(btn) {
-        const msg = document.getElementById('private-message-text').value.trim();
-        if (!msg) return alert("Ieraksti ziņas tekstu!");
-        const originalText = btn.innerText; btn.innerText = "⏳ Sūta..."; btn.disabled = true;
-        fetch(webAppUrl, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify({ action: "send_message", name: currentUser, message: msg })
-        }).then(res => res.json()).then(res => {
-            btn.innerText = originalText; btn.disabled = false;
-            if(res.status === "ok") { alert("✅ Ziņa nosūtīta!"); showDashboard(); } else alert("Kļūda: " + res.msg);
-        }).catch(err => { btn.innerText = originalText; btn.disabled = false; alert("Kļūda nosūtot ziņu."); });
-    }
 
     function loadAdminMessages(btn) {
         const listContainer = document.getElementById('admin-messages-list');
@@ -1276,29 +1248,6 @@
         document.getElementById('admin-briv-details').innerHTML = "<em>Noklikšķini uz zilajiem datumiem kalendārā, lai redzētu pieteikumus...</em>";
     }
 
-    // --- NOLIKTAVAS BRĪDINĀJUMI ---
-    function openInventoryScreen() {
-        document.getElementById('inventory-message').value = ""; 
-        showScreen('inventory-screen');
-    }
-
-    function sendInventoryAlert() {
-        const msg = document.getElementById('inventory-message').value.trim();
-        if (msg === "") return alert("⚠️ Lūdzu, ieraksti, kas tieši trūkst!");
-        
-        const btn = document.getElementById('send-inventory-btn');
-        const origText = btn.innerHTML;
-        btn.innerHTML = "<i class='fas fa-spinner fa-spin'></i> Sūta..."; btn.disabled = true;
-        
-        fetch(webAppUrl, {
-            method: "POST", headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify({ action: "inventory_alert", name: currentUser, message: msg })
-        }).then(res => res.json()).then(res => {
-            btn.innerHTML = origText; btn.disabled = false;
-            if(res.status === "ok") { alert("✅ Brīdinājums veiksmīgi nosūtīts!"); showDashboard(); } 
-            else alert("❌ Kļūda no servera: " + res.msg);
-        }).catch(err => { btn.innerHTML = origText; btn.disabled = false; alert("❌ Kļūda savienojumā. Pārbaudi internetu!"); });
-    }
 
     function openInstructions() {
         showScreen('instructions-screen');
