@@ -136,18 +136,18 @@
     <!-- ŠODIENAS REZERVĀCIJU WIDGETS -->
 <style>
 @keyframes resPulse {
-    0% { box-shadow: 0 0 0 0 rgba(237, 137, 54, 0.6); }
-    70% { box-shadow: 0 0 0 15px rgba(237, 137, 54, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(237, 137, 54, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(229, 62, 62, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
 }
 .today-res-box {
-    background: #fffaf0;
-    border: 2px solid #ed8936;
+    background: #fff5f5; /* Ļoti gaiši sarkans fons */
+    border: 2px solid #e53e3e; /* Koši sarkana maliņa */
     border-radius: 12px;
     padding: 15px;
     margin-bottom: 20px;
-    animation: resPulse 2s infinite;
-    display: none; /* Sākumā slēpts, parādīsies, ja būs dati */
+    animation: resPulse 1.5s infinite; /* Nedaudz ātrāka un agresīvāka pulsēšana */
+    display: none; 
     cursor: pointer;
     transition: transform 0.2s;
 }
@@ -1495,18 +1495,18 @@
             body: JSON.stringify({ action: "get_reservations", date: searchDate })
         }).then(res => res.json()).then(res => {
             if(res.status === "ok" && res.data.length > 0) {
-                // IR REZERVĀCIJAS - Pulsē oranžs!
-                widget.style.animation = 'resPulse 2s infinite';
-                widget.style.borderColor = '#ed8936';
-                widget.style.background = '#fffaf0';
+                // IR REZERVĀCIJAS - Pulsē koši sarkans!
+                widget.style.animation = 'resPulse 1.5s infinite';
+                widget.style.borderColor = '#e53e3e';
+                widget.style.background = '#fff5f5';
                 
-                let html = `<h3 style="margin:0 0 12px 0; color:#dd6b20; font-size:16px;">
-                    <i class="fas fa-exclamation-circle"></i> Šodien gaidām (${res.data.length}):
+                let html = `<h3 style="margin:0 0 12px 0; color:#c53030; font-size:16px;">
+                    <i class="fas fa-exclamation-triangle" style="animation: pulse 1s infinite;"></i> ŠODIENAS REZERVĀCIJAS (${res.data.length}):
                 </h3>`;
                 
                 res.data.forEach(r => {
                     let barIcon = r.bar === "Alus Muiža" ? "fa-beer" : "fa-martini-glass-citrus";
-                    html += `<div style="background:white; padding:10px; border-radius:8px; margin-bottom:8px; font-size:14px; color:#2d3748; border-left:4px solid #ed8936; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    html += `<div style="background:white; padding:10px; border-radius:8px; margin-bottom:8px; font-size:14px; color:#2d3748; border-left:5px solid #e53e3e; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                             <strong><i class="far fa-clock"></i> ${r.time}</strong>
                             <span style="color:#4a5568; font-weight:bold;"><i class="fas fa-users"></i> ${r.pax}</span>
