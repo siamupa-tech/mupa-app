@@ -132,16 +132,61 @@
             <li>Ielādē paziņojumus...</li>
         </ul>
     </div>
+
+    <!-- ŠODIENAS REZERVĀCIJU WIDGETS -->
+<style>
+@keyframes resPulse {
+    0% { box-shadow: 0 0 0 0 rgba(237, 137, 54, 0.6); }
+    70% { box-shadow: 0 0 0 15px rgba(237, 137, 54, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(237, 137, 54, 0); }
+}
+.today-res-box {
+    background: #fffaf0;
+    border: 2px solid #ed8936;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    animation: resPulse 2s infinite;
+    display: none; /* Sākumā slēpts, parādīsies, ja būs dati */
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.today-res-box:active {
+    transform: scale(0.98);
+}
+</style>
+
+<div id="today-reservations-widget" class="today-res-box" onclick="showReservations()">
+    <!-- Šeit skripts automātiski ieliks šodienas rezervācijas -->
+</div>
+
+    <div class="active-workers-box" id="active-workers-container">
+        <h4><i class="fas fa-users" style="margin-right: 8px;"></i> Šobrīd maiņā:</h4>
+        <div id="active-workers-list">
+            <span style="font-size: 13px; color: #718096;">Ielādē datus...</span>
+        </div>
+    </div>
+
+    <!-- Jaunais pogu izkārtojums (blakus) -->
+    <div style="display: flex; gap: 15px; margin-bottom: 20px; margin-top: 10px;">
+        
+        <!-- SĀKT MAIŅU (Kreisajā pusē) -->
+        <button onclick="checkLocationAndStartShift()" style="flex: 1; padding: 15px; background: #48bb78; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(72,187,120,0.3); cursor: pointer;">
+            <i class="fas fa-location-dot" style="font-size: 24px; margin-bottom: 8px;"></i>
+            Sākt maiņu
+        </button>
+        
+        <!-- BEIGT MAIŅU (Labajā pusē) -->
+        <button onclick="openShiftComment('Beigt maiņu')" style="flex: 1; padding: 15px; background: #e53e3e; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 6px rgba(229,62,62,0.3); cursor: pointer;">
+            <i class="fas fa-stop" style="font-size: 24px; margin-bottom: 8px;"></i>
+            Beigt maiņu
+        </button>
+    </div>
+
     <!-- Lielās tīrīšanas modulis -->
     <div class="info-wall" style="background: #fffaf0; border-left-color: #ed8936; margin-bottom: 25px;">
         <h4 style="color: #dd6b20; margin: 0 0 10px 0;"><i class="fas fa-broom" style="margin-right: 8px;"></i> Lielā tīrīšana (Gust.)</h4>
         <div id="cleaning-status-container">
-            <span style="font-size: 13px; color: #718096;">Ielādē datus...</span>
-        </div>
-    </div>
-    <div class="active-workers-box" id="active-workers-container">
-        <h4><i class="fas fa-users" style="margin-right: 8px;"></i> Šobrīd maiņā:</h4>
-        <div id="active-workers-list">
             <span style="font-size: 13px; color: #718096;">Ielādē datus...</span>
         </div>
     </div>
@@ -150,15 +195,13 @@
     <button id="btn-admin" class="action-btn hidden" style="background: #d69e2e; color: white;" onclick="openAdminPanel()"><i class="fas fa-crown" style="margin-right: 8px;"></i> Vadītāja panelis</button>
     
     <div id="shift-actions" class="hidden">
-        <h3><i class="fas fa-hourglass-half" style="margin-right: 8px;"></i> Darba laiks</h3>
-        <button class="action-btn btn-green" onclick="checkLocationAndStartShift()"><i class="fas fa-location-dot" style="margin-right: 8px;"></i> Sākt maiņu (GPS)</button>
-        <button class="action-btn btn-red" onclick="openShiftComment('Beigt maiņu')"><i class="fas fa-stop" style="margin-right: 8px;"></i> Beigt maiņu</button>
-        <hr style="border:0; border-top:1px solid #e2e8f0; margin: 25px 0;">
-    </div>
     
-    <button class="action-btn btn-stats" onclick="openMyHours()"><i class="fas fa-history" style="margin-right: 8px;"></i> Mana statistika</button>
-    <button class="action-btn" style="background: #3182ce; color: white;" onclick="openMySchedule()"><i class="far fa-calendar-alt" style="margin-right: 8px;"></i> Mans grafiks</button>
+    <hr style="border:0; border-top:1px solid #e2e8f0; margin: 25px 0;">
+</div>
+
     <button class="action-btn" style="background: #ed8936; color: black; margin-top: 10px;" onclick="showReservations()"><i class="fas fa-calendar-check" style="margin-right: 8px;"></i> Rezervācijas</button>
+    <button class="action-btn" style="background: #3182ce; color: white;" onclick="openMySchedule()"><i class="far fa-calendar-alt" style="margin-right: 8px;"></i> Mans grafiks</button>
+    <button class="action-btn btn-stats" onclick="openMyHours()"><i class="fas fa-history" style="margin-right: 8px;"></i> Mana statistika</button>
     <button class="action-btn btn-briv" onclick="openBrivdienas()"><i class="fas fa-calendar-days" style="margin-right: 8px;"></i> Pieteikt / Atcelt Brīvdienas</button>
     <button class="action-btn" style="background: #ed8936; color: white;" onclick="openInstructions()"><i class="fas fa-book" style="margin-right: 8px;"></i> Dokumenti un Receptes</button>
     <button class="action-btn btn-logout" onclick="logout()"><i class="fas fa-right-from-bracket" style="margin-right: 8px;"></i> Mainīt lietotāju (Iziet)</button>
@@ -580,8 +623,10 @@
         }).catch(err => { alert("Savienojuma kļūda."); btn.innerText = orig; btn.disabled = false; });
     }
 
-    function showDashboard() { showScreen('dashboard-screen'); }
-
+   function showDashboard() { 
+    showScreen('dashboard-screen'); 
+    loadTodayReservationsWidget(); // Šī rindiņa "ieslēgs" pulsējošo logu!
+}
     function checkLocationAndStartShift() {
         if (!navigator.geolocation) return alert("Tava ierīce neatbalsta lokācijas noteikšanu!");
         const btn = event.target;
@@ -1421,6 +1466,49 @@
             btn.disabled = false;
             alert("Savienojuma kļūda.");
         });
+    }
+    // ==========================================
+    // ŠODIENAS REZERVĀCIJU WIDGETS (Sākumekrānam)
+    // ==========================================
+    function loadTodayReservationsWidget() {
+        const widget = document.getElementById('today-reservations-widget');
+        if (!widget) return;
+
+        let today = new Date();
+        let dd = String(today.getDate()).padStart(2, '0');
+        let mm = String(today.getMonth() + 1).padStart(2, '0');
+        let yyyy = today.getFullYear();
+        let searchDate = `${dd}.${mm}.${yyyy}`;
+
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "get_reservations", date: searchDate })
+        }).then(res => res.json()).then(res => {
+            if(res.status === "ok" && res.data.length > 0) {
+                let html = `<h3 style="margin:0 0 12px 0; color:#dd6b20; font-size:16px;">
+                    <i class="fas fa-exclamation-circle"></i> Šodien gaidām (${res.data.length}):
+                </h3>`;
+                
+                res.data.forEach(r => {
+                    let barIcon = r.bar === "Alus Muiža" ? "fa-beer" : "fa-martini-glass-citrus";
+                    html += `<div style="background:white; padding:10px; border-radius:8px; margin-bottom:8px; font-size:14px; color:#2d3748; border-left:4px solid #ed8936; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <strong><i class="far fa-clock"></i> ${r.time}</strong>
+                            <span style="color:#4a5568; font-weight:bold;"><i class="fas fa-users"></i> ${r.pax}</span>
+                        </div>
+                        <div>${r.clientName}</div>
+                        <div style="font-size:12px; color:#dd6b20; margin-top:4px;"><i class="fas ${barIcon}"></i> ${r.bar}</div>
+                    </div>`;
+                });
+                
+                html += `<div style="text-align:center; font-size:12px; color:#a0aec0; margin-top:10px;"><i class="fas fa-hand-pointer"></i> Spied, lai atvērtu paneli</div>`;
+                
+                widget.innerHTML = html;
+                widget.style.display = 'block'; // Parādām WIDGETU!
+            } else {
+                widget.style.display = 'none'; // Paslēpjam, ja rezervāciju nav
+            }
+        }).catch(err => console.log("Widgeta kļūda:", err));
     }
 </script>
 </body>
