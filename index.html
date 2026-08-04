@@ -537,6 +537,7 @@
         }
         
         loadInfoWall();
+        loadTodayReservationsWidget();
         loadActiveWorkers(); 
         loadCleaningStatus();
         showScreen('dashboard-screen');
@@ -1472,29 +1473,29 @@
     // ==========================================
     function loadTodayReservationsWidget() {
         const widget = document.getElementById('today-reservations-widget');
-        if (!widget) return;
+        if (!widget) return; // Ja neatrod kastīti, apstājas
 
-        // 1. UZREIZ parādām neitrālu "Lādēšanas" logu
+        // UZREIZ parādām lādēšanas logu
         widget.style.display = 'block';
-        widget.style.animation = 'none'; // Noņemam oranžo pulsēšanu lādēšanas laikā
-        widget.style.borderColor = '#e2e8f0'; // Pelēka maliņa
-        widget.style.background = '#f7fafc'; // Pelēks fons
+        widget.style.animation = 'none';
+        widget.style.borderColor = '#e2e8f0';
+        widget.style.background = '#f7fafc';
         widget.innerHTML = `<div style="text-align:center; color:#718096; padding: 5px;">
-            <i class="fas fa-spinner fa-spin"></i> Pārbauda rezervācijas...
+            <i class="fas fa-spinner fa-spin"></i> Lasa datus...
         </div>`;
 
         let today = new Date();
         let dd = String(today.getDate()).padStart(2, '0');
         let mm = String(today.getMonth() + 1).padStart(2, '0');
         let yyyy = today.getFullYear();
-        let searchDate = `${dd}.${mm}.${yyyy}`;
+        let searchDate = `${dd}.${mm}.${yyyy}`; // Piemēram, 04.08.2026
 
         fetch(webAppUrl, {
             method: "POST", headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({ action: "get_reservations", date: searchDate })
         }).then(res => res.json()).then(res => {
             if(res.status === "ok" && res.data.length > 0) {
-                // 2. Ja atrod datus, IESLĒDZAM oranžo pulsēšanu un ieliekam datus
+                // IR REZERVĀCIJAS - Pulsē oranžs!
                 widget.style.animation = 'resPulse 2s infinite';
                 widget.style.borderColor = '#ed8936';
                 widget.style.background = '#fffaf0';
@@ -1519,12 +1520,17 @@
                 widget.innerHTML = html;
                 
             } else {
-                // 3. Ja datu nav (tukša diena), paslēpjam widgetu pilnībā
-                widget.style.display = 'none';
+                // NAV REZERVĀCIJU - Rādām paziņojumu, lai zinām, ka skripts strādā!
+                widget.style.animation = 'none';
+                widget.style.borderColor = '#e2e8f0';
+                widget.style.background = '#f7fafc';
+                widget.innerHTML = `<div style="text-align:center; color:#a0aec0; padding: 10px; font-size:12px;">
+                    <i class="fas fa-calendar-times" style="margin-bottom:5px; font-size:16px;"></i><br>
+                    Šodienai (${searchDate}) sistēmā nav rezervāciju.
+                </div>`;
             }
         }).catch(err => {
-            widget.style.display = 'none';
-            console.log("Widgeta kļūda:", err);
+            widget.innerHTML = `<div style="color:#e53e3e; text-align:center; padding: 10px;">Savienojuma kļūda.</div>`;
         });
     }
 </script>
