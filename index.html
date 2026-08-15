@@ -165,6 +165,13 @@
         <div id="active-workers-list">
             <span style="font-size: 13px; color: #718096;">Ielādē datus...</span>
         </div>
+        
+        <!-- JAUNĀ DZERAMNAUDAS POGA -->
+        <div style="text-align: right; margin-top: 15px; border-top: 1px dashed #e2e8f0; padding-top: 8px;">
+            <button onclick="openTipCalculator()" style="background: none; border: none; color: #718096; font-size: 13px; cursor: pointer; transition: 0.2s;">
+                <i class="fas fa-calculator" style="color: #ed8936; margin-right: 5px;"></i> Dalīt dzeramnaudu
+            </button>
+        </div>
     </div>
 
     <!-- Jaunais pogu izkārtojums (blakus) -->
@@ -415,11 +422,51 @@
             </form>
         </div>
     </div>
+    <!-- DZERAMNAUDAS KALKULATORA LOGS (Ar Lokācijām) -->
+<div id="tip-calc-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:white; padding:20px; border-radius:12px; width:90%; max-width:350px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+        
+        <h3 style="margin:0 0 15px 0; color:#2d3748; display:flex; justify-content:space-between; align-items:center;">
+            <span><i class="fas fa-coins" style="color:#ed8936; margin-right:8px;"></i> Čaja sadalītājs</span>
+            <i class="fas fa-times" onclick="closeTipCalculator()" style="color:#a0aec0; cursor:pointer; font-size:20px;"></i>
+        </h3>
+
+        <!-- BĀRA IZVĒLE -->
+        <div style="display:flex; margin-bottom:15px; background:#edf2f7; border-radius:8px; padding:4px;">
+            <div onclick="selectTipBar('alus')" id="tab-alus" style="flex:1; text-align:center; padding:8px; border-radius:6px; cursor:pointer; background:white; font-weight:bold; color:#2d3748; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                <i class="fas fa-beer" style="color:#ed8936;"></i> Alus Muiža
+            </div>
+            <div onclick="selectTipBar('gust')" id="tab-gust" style="flex:1; text-align:center; padding:8px; border-radius:6px; cursor:pointer; color:#718096; font-weight:normal;">
+                <i class="fas fa-circle" style="color:#48bb78;"></i> Gust
+            </div>
+        </div>
+        
+        <label style="font-size:14px; font-weight:bold; color:#4a5568;">Kopējā summa (€):</label>
+        <input type="number" id="total-tips-input" placeholder="0.00" style="width:100%; padding:10px; margin-top:5px; margin-bottom:15px; border:1px solid #cbd5e0; border-radius:8px; font-size:18px; box-sizing: border-box;">
+        
+        <label style="font-size:14px; font-weight:bold; color:#4a5568;">Nostrādātās stundas:</label>
+        <div id="tip-workers-list" style="margin-top:10px; max-height:200px; overflow-y:auto;">
+            <!-- JS ģenerēs laukus šeit -->
+        </div>
+        
+        <button onclick="addEmptyWorkerRow('', '')" style="background:none; border:none; color:#4299e1; font-size:13px; margin-top:5px; cursor:pointer; padding:0;">
+            + Pievienot vēl vienu cilvēku
+        </button>
+        
+        <button onclick="calculateTips()" style="width:100%; padding:12px; background:#2d3748; color:white; border:none; border-radius:8px; font-size:16px; font-weight:bold; margin-top:20px; cursor:pointer;">
+            Sadalīt
+        </button>
+        
+        <div id="tip-results" style="margin-top:15px; padding:12px; background:#f0fff4; border:1px solid #9ae6b4; border-radius:8px; display:none;">
+            <!-- Šeit parādīsies rezultāts -->
+        </div>
+    </div>
+</div>
 <script>
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbyxfolW9FEfBEvteSHF0e9WUT2utKjadNYzeaOtqTeuRNiMYc6xFl2njkMrciE5DqQ/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbxU-KncnaW6sMV56CiJnO_ZsWewLFEgP9FoKv5Mg1dPFHN-A51cVAvAKRLFyrtmUA/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -1533,6 +1580,142 @@
             widget.innerHTML = `<div style="color:#e53e3e; text-align:center; padding: 10px;">Savienojuma kļūda.</div>`;
         });
     }
+// ==========================================
+// DZERAMNAUDAS KALKULATORA SKRIPTS (Pilnā versija)
+// ==========================================
+let currentTipBar = 'alus';
+
+function openTipCalculator() {
+    document.getElementById('tip-calc-modal').style.display = 'flex';
+    document.getElementById('total-tips-input').value = '';
+    document.getElementById('tip-results').style.display = 'none';
+    
+    selectTipBar('alus'); // Atverot uzreiz ieslēdzam "Alus Muiža" cilni
+}
+
+function closeTipCalculator() {
+    document.getElementById('tip-calc-modal').style.display = 'none';
+}
+
+function selectTipBar(bar) {
+    currentTipBar = bar;
+    
+    // Pārkrāsojam podziņas (Tabus) atkarībā no izvēles
+    document.getElementById('tab-alus').style.background = (bar === 'alus') ? 'white' : 'transparent';
+    document.getElementById('tab-alus').style.fontWeight = (bar === 'alus') ? 'bold' : 'normal';
+    document.getElementById('tab-alus').style.color = (bar === 'alus') ? '#2d3748' : '#718096';
+    document.getElementById('tab-alus').style.boxShadow = (bar === 'alus') ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
+
+    document.getElementById('tab-gust').style.background = (bar === 'gust') ? 'white' : 'transparent';
+    document.getElementById('tab-gust').style.fontWeight = (bar === 'gust') ? 'bold' : 'normal';
+    document.getElementById('tab-gust').style.color = (bar === 'gust') ? '#2d3748' : '#718096';
+    document.getElementById('tab-gust').style.boxShadow = (bar === 'gust') ? '0 1px 3px rgba(0,0,0,0.1)' : 'none';
+
+    // Izsaucam funkciju, kas sameklēs pareizos darbiniekus
+    loadWorkersIntoCalculator();
+}
+
+function loadWorkersIntoCalculator() {
+    const workersContainer = document.getElementById('tip-workers-list');
+    workersContainer.innerHTML = `<div style="text-align:center; color:#718096; padding:10px; font-size:13px;">
+        <i class="fas fa-spinner fa-spin"></i> Meklē grafiku...
+    </div>`; 
+
+    let today = new Date();
+    let dd = String(today.getDate()).padStart(2, '0');
+    let mm = String(today.getMonth() + 1).padStart(2, '0');
+    let yyyy = today.getFullYear();
+    let searchDate = `${dd}.${mm}.${yyyy}`;
+
+    // Sūtām pieprasījumu uz jauno "get_tip_schedule"
+    fetch(webAppUrl, {
+        method: "POST", 
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ action: "get_tip_schedule", date: searchDate })
+    })
+    .then(res => res.json())
+    .then(res => {
+        workersContainer.innerHTML = '';
+        let foundAny = false;
+
+        if (res.status === "ok" && res.data && res.data.length > 0) {
+            res.data.forEach(worker => {
+                // Parāda tikai tiem, kuru lokācija sakrīt ar izvēlēto tabu (alus vai gust)
+                if (worker.location === currentTipBar) {
+                    addEmptyWorkerRow(worker.name, worker.hours);
+                    foundAny = true;
+                }
+            });
+        }
+
+        // Ja nevienam šodien grafikā nav maiņas šajā bārā
+        if (!foundAny) {
+            addEmptyWorkerRow("", "");
+        }
+    })
+    .catch(err => {
+        workersContainer.innerHTML = `<div style="text-align:center; color:#e53e3e; padding:10px; font-size:13px;">Kļūda savienojumā</div>`;
+        addEmptyWorkerRow("", "");
+    });
+}
+
+function addEmptyWorkerRow(defaultName = "", defaultHours = "") {
+    const container = document.getElementById('tip-workers-list');
+    const div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.alignItems = 'center';
+    div.style.marginBottom = '8px';
+    
+    div.innerHTML = `
+        <input type="text" value="${defaultName}" class="tip-worker-name" style="flex:2; padding:8px; margin-right:5px; border:1px solid #cbd5e0; border-radius:4px; font-size:14px;" placeholder="Vārds">
+        <input type="number" value="${defaultHours}" class="tip-worker-hours" style="flex:1; padding:8px; border:1px solid #cbd5e0; border-radius:4px; font-size:14px;" placeholder="Stundas">
+    `;
+    container.appendChild(div);
+}
+
+function calculateTips() {
+    let totalTip = parseFloat(document.getElementById('total-tips-input').value);
+    if (isNaN(totalTip) || totalTip <= 0) {
+        alert("Lūdzu, ievadi precīzu kopējo summu!");
+        return;
+    }
+
+    let names = document.getElementsByClassName('tip-worker-name');
+    let hours = document.getElementsByClassName('tip-worker-hours');
+    
+    let totalHours = 0;
+    let validWorkers = [];
+
+    for (let i = 0; i < names.length; i++) {
+        let h = parseFloat(hours[i].value);
+        let n = names[i].value.trim();
+        
+        if (!isNaN(h) && h > 0 && n !== "") {
+            totalHours += h;
+            validWorkers.push({ name: n, hours: h });
+        }
+    }
+
+    if (totalHours === 0) {
+        alert("Lūdzu, ievadi nostrādātās stundas vismaz vienam darbiniekam!");
+        return;
+    }
+
+    let resultHtml = `<h4 style="margin:0 0 10px 0; color:#276749; border-bottom:1px solid #c6f6d5; padding-bottom:5px;">Katram pienākas:</h4>`;
+    
+    validWorkers.forEach(w => {
+        let proportion = w.hours / totalHours;
+        let splitAmount = (totalTip * proportion).toFixed(2);
+        resultHtml += `<div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:15px;">
+            <span>${w.name} <span style="color:#718096; font-size:12px;">(${w.hours}h)</span></span>
+            <strong style="color:#2f855a;">€ ${splitAmount}</strong>
+        </div>`;
+    });
+
+    const resultsDiv = document.getElementById('tip-results');
+    resultsDiv.innerHTML = resultHtml;
+    resultsDiv.style.display = 'block';
+}
 </script>
 </body>
 </html>
