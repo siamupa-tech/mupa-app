@@ -427,7 +427,7 @@
     <div style="background:white; padding:20px; border-radius:12px; width:90%; max-width:350px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
         
         <h3 style="margin:0 0 15px 0; color:#2d3748; display:flex; justify-content:space-between; align-items:center;">
-            <span><i class="fas fa-coins" style="color:#ed8936; margin-right:8px;"></i> Čaja sadalītājs</span>
+            <span><i class="fas fa-coins" style="color:#ed8936; margin-right:8px;"></i> Dzeramnaudas sadalītājs</span>
             <i class="fas fa-times" onclick="closeTipCalculator()" style="color:#a0aec0; cursor:pointer; font-size:20px;"></i>
         </h3>
 
@@ -1622,6 +1622,12 @@ function loadWorkersIntoCalculator() {
     </div>`; 
 
     let today = new Date();
+    
+    // JAUNUMS: Bāra loģika! Ja ir pirms 06:00 rītā, atņemam vienu dienu (skaitās vakardiena)
+    if (today.getHours() < 6) {
+        today.setDate(today.getDate() - 1);
+    }
+    
     let dd = String(today.getDate()).padStart(2, '0');
     let mm = String(today.getMonth() + 1).padStart(2, '0');
     let yyyy = today.getFullYear();
@@ -1648,7 +1654,7 @@ function loadWorkersIntoCalculator() {
             });
         }
 
-        // Ja nevienam šodien grafikā nav maiņas šajā bārā
+        // Ja nevienam šodien (vai vakardien) grafikā nav maiņas šajā bārā
         if (!foundAny) {
             addEmptyWorkerRow("", "");
         }
