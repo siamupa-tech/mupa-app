@@ -466,7 +466,7 @@
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbzhAiYjaUDqtOvstTIB_uKFeUT3_IpQIq-66vSxqggfP-dSWmp5Ixh0iqXVLOJkur0/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbzZ1U73VLALndXATRWmbBx4w7YoFPsSYidrKqRwc6038fb9UXeKRrP5hdblToWXDDM/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -604,15 +604,20 @@
                     let chip = document.createElement("span");
                     chip.className = "worker-chip";
                     
-                    // Pārbaudām, vai darbinieks ir Alus Muižā
                     if (worker.location === "Alus Muiža") {
-                        // Oranžais Muižas dizains
-                        chip.style.background = "#feebc8"; // Viegli oranžs fons
-                        chip.style.color = "#c05621";      // Tumšāk oranžs teksts
+                        chip.style.background = "#feebc8"; chip.style.color = "#c05621";      
                         chip.innerHTML = '<i class="fas fa-beer" style="font-size:11px; margin-right:4px; color:#dd6b20;"></i> ' + worker.name;
+                    } else if (worker.location === "Virtuve") {
+                        chip.style.background = "#fed7d7"; chip.style.color = "#c53030";      
+                        chip.innerHTML = '<i class="fas fa-utensils" style="font-size:11px; margin-right:4px; color:#e53e3e;"></i> ' + worker.name;
+                    } else if (worker.location === "Apkope") {
+                        chip.style.background = "#e2e8f0"; chip.style.color = "#2b6cb0";      
+                        chip.innerHTML = '<i class="fas fa-broom" style="font-size:11px; margin-right:4px; color:#3182ce;"></i> ' + worker.name;
+                    } else if (worker.location === "Noliktava") {
+                        chip.style.background = "#e9d8fd"; chip.style.color = "#6b46c1";      
+                        chip.innerHTML = '<i class="fas fa-boxes-stacked" style="font-size:11px; margin-right:4px; color:#805ad5;"></i> ' + worker.name;
                     } else {
-                        // Standarta Gust. / Virtuves zaļais dizains
-                        chip.innerHTML = '<i class="fas fa-circle" style="font-size:10px;"></i> ' + worker.name;
+                        chip.innerHTML = '<i class="fas fa-martini-glass-citrus" style="font-size:11px; margin-right:4px;"></i> ' + worker.name;
                     }
                     
                     list.appendChild(chip);
@@ -1187,6 +1192,9 @@
                         let locBadge = "";
                         if (item.location === "Alus Muiža") locBadge = `<div style="margin-top:6px;"><span style="background:#feebc8; color:#c05621; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-beer" style="margin-right:4px;"></i> Alus Muiža</span></div>`;
                         else if (item.location === "Gust.") locBadge = `<div style="margin-top:6px;"><span style="background:#c6f6d5; color:#22543d; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-martini-glass-citrus" style="margin-right:4px;"></i> Gust.</span></div>`;
+                        else if (item.location === "Virtuve") locBadge = `<div style="margin-top:6px;"><span style="background:#fed7d7; color:#c53030; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-utensils" style="margin-right:4px;"></i> Virtuve</span></div>`;
+                        else if (item.location === "Apkope") locBadge = `<div style="margin-top:6px;"><span style="background:#e2e8f0; color:#2b6cb0; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-broom" style="margin-right:4px;"></i> Apkope</span></div>`;
+                        else if (item.location === "Noliktava") locBadge = `<div style="margin-top:6px;"><span style="background:#e9d8fd; color:#6b46c1; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-boxes-stacked" style="margin-right:4px;"></i> Noliktava</span></div>`;
                         
                         // Aprēķinām nedēļas dienu šim datumam
                         let dayNum = parseInt(item.date);
@@ -1249,13 +1257,15 @@
                             let icon = "";
                             
                             if (worker.location === "Alus Muiža") {
-                                badgeBg = "#feebc8"; // Oranžs fons
-                                badgeColor = "#c05621"; // Oranžs teksts
-                                icon = '<i class="fas fa-beer" style="margin-right:5px;"></i>';
+                                badgeBg = "#feebc8"; badgeColor = "#c05621"; icon = '<i class="fas fa-beer" style="margin-right:5px;"></i>';
+                            } else if (worker.location === "Virtuve") {
+                                badgeBg = "#fed7d7"; badgeColor = "#c53030"; icon = '<i class="fas fa-utensils" style="margin-right:5px;"></i>';
+                            } else if (worker.location === "Apkope") {
+                                badgeBg = "#e2e8f0"; badgeColor = "#2b6cb0"; icon = '<i class="fas fa-broom" style="margin-right:5px;"></i>';
+                            } else if (worker.location === "Noliktava") {
+                                badgeBg = "#e9d8fd"; badgeColor = "#6b46c1"; icon = '<i class="fas fa-boxes-stacked" style="margin-right:5px;"></i>';
                             } else if (worker.location === "Gust.") {
-                                badgeBg = "#c6f6d5"; // Zaļš fons
-                                badgeColor = "#22543d"; // Zaļš teksts
-                                icon = '<i class="fas fa-martini-glass-citrus" style="margin-right:5px;"></i>';
+                                badgeBg = "#c6f6d5"; badgeColor = "#22543d"; icon = '<i class="fas fa-martini-glass-citrus" style="margin-right:5px;"></i>';
                             }
                             
                             html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid #e2e8f0;">
