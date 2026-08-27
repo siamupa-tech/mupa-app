@@ -1174,7 +1174,7 @@
         targetDate.setMonth(targetDate.getMonth() + monthOffset);
         
         const sheetName = months[targetDate.getMonth()] + " " + targetDate.getFullYear();
-        document.getElementById('schedule-month-text').innerText = sheetName;
+        document.getElementById('schedule-month-text').innerHTML = sheetName;
         
         const container = document.getElementById('schedule-list-container');
         container.innerHTML = "<p style='text-align:center; color:#a0aec0;'><i class='fas fa-spinner fa-spin'></i> Meklējam maiņas tabulā...</p>";
@@ -1186,9 +1186,26 @@
             if(res.status === "ok") {
                 if (res.data && res.data.length > 0) {
                     let html = "";
+                    let totalHours = 0; // JAUNUMS: Stundu skaitītājs šim mēnesim
                     const wdNames = ["Svētdiena", "Pirmdiena", "Otrdiena", "Trešdiena", "Ceturtdiena", "Piektdiena", "Sestdiena"];
                     
                     res.data.forEach(item => {
+                        // JAUNUMS: Matemātika, kas prot aprēķināt stundas (pat nakts maiņām un dubultajām maiņām)
+                        let shiftParts = item.shift.split(" un ");
+                        shiftParts.forEach(p => {
+                            let match = p.match(/(\d{1,2})(?:[:.](\d{2}))?\s*-\s*(\d{1,2})(?:[:.](\d{2}))?/);
+                            if (match) {
+                                let h1 = parseInt(match[1], 10);
+                                let m1 = match[2] ? parseInt(match[2], 10) : 0;
+                                let h2 = parseInt(match[3], 10);
+                                let m2 = match[4] ? parseInt(match[4], 10) : 0;
+                                let start = h1 + (m1 / 60);
+                                let end = h2 + (m2 / 60);
+                                if (end <= start) end += 24; // Ja iet pāri pusnaktij
+                                totalHours += (end - start);
+                            }
+                        });
+
                         let locBadge = "";
                         if (item.location === "Alus Muiža") locBadge = `<div style="margin-top:6px;"><span style="background:#feebc8; color:#c05621; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-beer" style="margin-right:4px;"></i> Alus Muiža</span></div>`;
                         else if (item.location === "Gust.") locBadge = `<div style="margin-top:6px;"><span style="background:#c6f6d5; color:#22543d; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-martini-glass-citrus" style="margin-right:4px;"></i> Gust.</span></div>`;
@@ -1224,8 +1241,15 @@
                             </div>
                         </div>`;
                     });
+                    
+                    // JAUNUMS: Pievienojam sarēķinātās stundas tieši zem mēneša nosaukuma!
+                    document.getElementById('schedule-month-text').innerHTML = `${sheetName}<br><span style="font-size:14px; font-weight:normal; color:#718096;">Prognozētais apjoms: <b style="color:#3182ce;">~${totalHours.toFixed(1)} h</b></span>`;
+                    
                     container.innerHTML = html;
-                } else container.innerHTML = `<p style='text-align:center; color:#718096;'>Šajā mēnesī (${sheetName}) tev nav ieplānotu maiņu.</p>`;
+                } else {
+                    document.getElementById('schedule-month-text').innerHTML = sheetName;
+                    container.innerHTML = `<p style='text-align:center; color:#718096;'>Šajā mēnesī (${sheetName}) tev nav ieplānotu maiņu.</p>`;
+                }
             } else container.innerHTML = `<p style='text-align:center; color:#e53e3e;'>Grafiks "${sheetName}" vēl nav publicēts.</p>`;
         }).catch(err => { container.innerHTML = "<p style='text-align:center; color:#e53e3e;'>Kļūda savienojumā. Pārbaudi internetu.</p>"; });
     }
