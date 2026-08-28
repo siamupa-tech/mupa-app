@@ -264,6 +264,9 @@
             <div style="margin-bottom: 5px;"><span class="color-dot" style="background:#e6e6e6;"></span> Pilnās dienas bāram (Nobloķētas)</div>
         </div>
         <button class="action-btn btn-briv" onclick="sendBriv()">Pieteikt iezīmētās dienas</button>
+        <button onclick="document.getElementById('lateShiftModal').style.display='flex'" style="background:#ecc94b; color:#744210; padding:10px 15px; border:none; border-radius:8px; font-weight:bold; width:100%; margin-top:8px; cursor:pointer;">
+    <i class="fas fa-clock"></i> Varu strādāt vēlāk
+</button>        
 
         <hr style="border:0; border-top:1px solid #e2e8f0; margin: 25px 0;">
         <h3 style="color:#2d3748; margin-bottom:10px; font-size: 16px;"><i class="fas fa-plane-departure" style="margin-right: 8px;"></i> Atvaļinājums (Periods)</h3>
@@ -462,11 +465,29 @@
         </div>
     </div>
 </div>
+<!-- Vēlākās maiņas lodziņš -->
+<div id="lateShiftModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:12px; width:90%; max-width:320px; text-align:center;">
+        <h3 style="margin-top:0; color:#2d3748;"><i class="fas fa-clock" style="color:#ecc94b;"></i> Cikos varēsi būt?</h3>
+        <p style="font-size:13px; color:#718096; margin-bottom:15px;">Norādi laiku atzīmētajām dienām:</p>
+        
+        <select id="lateShiftSelect" style="width:100%; padding:12px; border-radius:8px; border:1px solid #cbd5e0; margin-bottom:20px; font-size:16px; background:#f7fafc;">
+            <option value="Var no 17:00">Varēšu no 17:00</option>
+            <option value="Var no 18:00">Varēšu no 18:00</option>
+            <option value="Var no 19:00">Varēšu no 19:00</option>
+        </select>
+        
+        <div style="display:flex; justify-content:space-between;">
+            <button onclick="document.getElementById('lateShiftModal').style.display='none'" style="background:#e2e8f0; color:#4a5568; padding:10px 15px; border:none; border-radius:8px; width:48%; font-weight:bold;">Atcelt</button>
+            <button id="btn-save-late" onclick="submitLateShift()" style="background:#3182ce; color:white; padding:10px 15px; border:none; border-radius:8px; width:48%; font-weight:bold;">Saglabāt</button>
+        </div>
+    </div>
+</div>
 <script>
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbxtwinw4vkrlTaqSOczgAPva7nN8jgre46n_5v3Y3w9Yej7PDT409vhcXp8H8YSI0Y/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbx2eOGV26V0Jz4t03HBRM3Z2lqXYdKhdnHZUM5oHebzCIsq0gj23DD9cWnafWLUXNA/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -1712,7 +1733,63 @@ function addEmptyWorkerRow(defaultName = "", defaultHours = "") {
     `;
     container.appendChild(div);
 }
+function submitLateShift() {
+    // 1. Gudri paņemam datumus no kalendāra atmiņas (kā to dara vecā poga)
+    if (!fpInstance || fpInstance.selectedDates.length === 0) {
+        alert("Lūdzu, vispirms kalendārā iezīmē dienas!");
+        document.getElementById('lateShiftModal').style.display = 'none';
+        return;
+    }
+    
+    const mySelectedDates = fpInstance.selectedDates.map(d => fpInstance.formatDate(d, "Y-m-d"));
+    
+    // 2. Nosakām nodaļu (kā to dara vecā poga)
+    let myNodala = "Bars";
+    if (adminNames.includes(currentUser)) {
+        myNodala = "Vadiba";
+    } else if (virtuveNames.includes(currentUser)) {
+        myNodala = "Virtuve";
+    }
 
+    let statussText = document.getElementById('lateShiftSelect').value;
+    let btn = document.getElementById('btn-save-late');
+    let oldText = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    
+    // 3. Sūtām datus!
+    fetch(webAppUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+            action: "brivdiena_vairakas",
+            dates: mySelectedDates,
+            name: currentUser,       
+            nodala: myNodala, 
+            statuss: statussText     
+        })
+    })
+    .then(res => res.json())
+    .then(res => {
+        btn.innerHTML = oldText;
+        btn.disabled = false;
+        
+        if (res.status === "ok") {
+            alert("✅ Vēlākā maiņa veiksmīgi pieteikta!");
+            document.getElementById('lateShiftModal').style.display = 'none';
+            document.getElementById('date-briv').value = ""; // Notīra ievades lauku
+            openBrivdienas(); // Smuki pārlādē kalendāru ar jaunajiem datiem
+        } else {
+            alert("Kļūda: " + res.msg);
+        }
+    })
+    .catch(err => {
+        alert("Savienojuma kļūda. Pārbaudi internetu.");
+        btn.innerHTML = oldText;
+        btn.disabled = false;
+    });
+}
 function calculateTips() {
     let totalTip = parseFloat(document.getElementById('total-tips-input').value);
     if (isNaN(totalTip) || totalTip <= 0) {
