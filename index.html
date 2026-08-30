@@ -296,7 +296,16 @@
 <div class="card hidden" id="admin-screen">
     <button class="refresh-floating" onclick="refreshAdminData()"><i class="fas fa-rotate"></i></button>
     <h2><i class="fas fa-crown" style="margin-right: 10px; color: #d69e2e;"></i> Vadītājs</h2>
-    
+    <div class="checklist-box admin-box" style="border-color: #e53e3e; background: #fff5f5; margin-bottom: 20px;">
+        <p style="color: #c53030; font-weight:bold; margin-bottom:10px;"><i class="fas fa-bell" style="margin-right: 8px;"></i> Sūtīt obligāto paziņojumu</p>
+        <select id="alert-target-select" style="width: 100%; padding: 12px; border: 1px solid #fc8181; border-radius: 6px; margin-bottom: 10px; background: white; font-size:15px;">
+            <option value="">-- Kam sūtīsim ziņu? --</option>
+            <option value="Visiem">📢 VISIEM DARBINIEKIEM</option>
+            <!-- Darbinieku vārdi šeit ielādēsies automātiski -->
+        </select>
+        <textarea id="new-alert-msg" rows="3" style="width: 100%; padding: 10px; border: 1px solid #fc8181; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; box-sizing: border-box;" placeholder="Ieraksti svarīgo ziņu (piem., par izmaiņām grafikā)..."></textarea>
+        <button id="btn-send-alert" class="action-btn" style="background: #e53e3e; color: white; margin-top: 10px; padding: 12px;" onclick="sendMandatoryAlert()">🚨 Nosūtīt sistēmā</button>
+    </div>
     <div class="checklist-box admin-box" style="border-color: #d69e2e; background: #fffff0; margin-bottom: 20px;">
         <p style="color: #b7791f;"><i class="fas fa-bullhorn" style="margin-right: 8px;"></i> Jauns paziņojums komandai</p>
         <textarea id="new-announcement" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ecc94b; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; box-sizing: border-box;" placeholder="Ieraksti tekstu, kas uzreiz parādīsies visu darbinieku ekrānos..."></textarea>
@@ -483,11 +492,25 @@
         </div>
     </div>
 </div>
+<!-- OBLIGĀTAIS PAZIŅOJUMS DARBINIEKAM -->
+<div id="mandatory-alert-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+    <div style="background:white; width:90%; max-width:350px; border-radius:12px; padding:25px; box-shadow:0 10px 25px rgba(229,62,62,0.4); text-align:center; border: 3px solid #e53e3e;">
+        <div style="background:#fff5f5; color:#c53030; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 15px auto;">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h2 style="margin:0 0 15px 0; color:#2d3748; font-size:22px;">Svarīga ziņa!</h2>
+        <div id="mandatory-alert-text" style="font-size:16px; color:#4a5568; margin-bottom:25px; line-height:1.5; white-space:pre-wrap; text-align:left; background:#edf2f7; padding:15px; border-radius:8px;">
+            Teksts
+        </div>
+        <!-- Ievēro - te nav krustiņa, lai aizvērtu! Viņam ir obligāti jānospiež šī poga! -->
+        <button id="btn-read-alert" onclick="markAlertAsRead()" style="width:100%; padding:15px; background:#e53e3e; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">ESMU IZLASĪJIS UN SAPRATU</button>
+    </div>
+</div>
 <script>
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbx2eOGV26V0Jz4t03HBRM3Z2lqXYdKhdnHZUM5oHebzCIsq0gj23DD9cWnafWLUXNA/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbz1nmmLsY3sAIjUuCkI8-pJx0Nt2fTr46a2w5lbuVxXYTLSODF7GSa6YbNIqlTo36E/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -505,7 +528,16 @@
     let detectedBarName = "";
 
     const select = document.getElementById('user-select');
-    allNames.forEach(n => { let o = document.createElement("option"); o.value = n; o.text = n; select.add(o); });
+    const alertSelect = document.getElementById('alert-target-select'); 
+    
+    allNames.forEach(n => { 
+        let o = document.createElement("option"); o.value = n; o.text = n; select.add(o); 
+        
+        // Pievieno vārdus arī Vadītāja logā "Kam sūtīt ziņu"
+        if (alertSelect) {
+            let o2 = document.createElement("option"); o2.value = n; o2.text = n; alertSelect.add(o2);
+        }
+    });
 
     window.onload = function() {
         const savedUser = localStorage.getItem('mupa_user');
@@ -609,6 +641,7 @@
         loadActiveWorkers(); 
         loadCleaningStatus();
         showScreen('dashboard-screen');
+        checkMandatoryAlerts();
     }
 
     function loadActiveWorkers() {
@@ -1788,6 +1821,88 @@ function submitLateShift() {
         alert("Savienojuma kļūda. Pārbaudi internetu.");
         btn.innerHTML = oldText;
         btn.disabled = false;
+    });
+}
+// ==========================================
+// OBLIGĀTO PAZIŅOJUMU LOĢIKA
+// ==========================================
+let activeAlertsQueue = [];
+let currentAlertRowId = null;
+
+// 1. Pārbaudīt, vai darbiniekam nav ienākušas jaunas ziņas
+function checkMandatoryAlerts() {
+    fetch(webAppUrl, {
+        method: "POST", headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ action: "get_my_alerts", name: currentUser })
+    }).then(res => res.json()).then(res => {
+        if(res.status === "ok" && res.data.length > 0) {
+            activeAlertsQueue = res.data;
+            showNextAlert(); // Parāda pašu pirmo rindu no saraksta
+        }
+    }).catch(err => console.log("Kļūda pārbaudot brīdinājumus"));
+}
+
+// 2. Parāda lodziņu ekrānā
+function showNextAlert() {
+    if (activeAlertsQueue.length === 0) {
+        document.getElementById('mandatory-alert-modal').style.display = 'none';
+        return;
+    }
+    let alertItem = activeAlertsQueue[0];
+    currentAlertRowId = alertItem.rowId;
+    document.getElementById('mandatory-alert-text').innerText = alertItem.message;
+    document.getElementById('mandatory-alert-modal').style.display = 'flex';
+}
+
+// 3. Kad darbinieks nospiež "Esmu izlasījis"
+function markAlertAsRead() {
+    const btn = document.getElementById('btn-read-alert');
+    btn.innerText = "Reģistrē...";
+    btn.disabled = true;
+    
+    fetch(webAppUrl, {
+        method: "POST", headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ action: "mark_alert_read", rowId: currentAlertRowId })
+    }).then(res => res.json()).then(res => {
+        btn.innerText = "ESMU IZLASĪJIS UN SAPRATU";
+        btn.disabled = false;
+        if (res.status === "ok") {
+            activeAlertsQueue.shift(); // Izmetam izlasīto ārā no atmiņas
+            showNextAlert(); // Ja ir vēl 2. ziņa, uzreiz parāda arī to
+        }
+    }).catch(err => {
+        btn.innerText = "ESMU IZLASĪJIS UN SAPRATU";
+        btn.disabled = false;
+    });
+}
+
+// 4. Funkcija Vadītājam, lai nosūtītu ziņu
+function sendMandatoryAlert() {
+    const target = document.getElementById('alert-target-select').value;
+    const msg = document.getElementById('new-alert-msg').value.trim();
+    if(!target) return alert("Izvēlies saņēmēju!");
+    if(!msg) return alert("Ieraksti ziņu!");
+    
+    // Ja izvēlas visus, tad saliekam visus vārdus masīvā!
+    let targetsArray = (target === "Visiem") ? allNames : [target];
+    
+    const btn = document.getElementById('btn-send-alert');
+    const origText = btn.innerHTML;
+    btn.innerHTML = "⏳ Sūta..."; btn.disabled = true;
+    
+    fetch(webAppUrl, {
+        method: "POST", headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ action: "add_alert", targets: targetsArray, message: msg })
+    }).then(res => res.json()).then(res => {
+        btn.innerHTML = origText; btn.disabled = false;
+        if(res.status === "ok") {
+            alert("🚨 Paziņojums veiksmīgi nosūtīts!");
+            document.getElementById('new-alert-msg').value = "";
+            document.getElementById('alert-target-select').value = "";
+        } else alert("Kļūda: " + res.msg);
+    }).catch(err => {
+        btn.innerHTML = origText; btn.disabled = false;
+        alert("Kļūda savienojumā.");
     });
 }
 function calculateTips() {
