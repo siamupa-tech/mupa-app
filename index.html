@@ -1225,6 +1225,7 @@
         
         // Nosakām gadu un mēnesi, kuru šobrīd skatāmies
         const targetDate = new Date();
+        targetDate.setDate(1);
         targetDate.setMonth(targetDate.getMonth() + monthOffset);
         
         const sheetName = months[targetDate.getMonth()] + " " + targetDate.getFullYear();
