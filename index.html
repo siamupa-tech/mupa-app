@@ -1010,7 +1010,10 @@
         today.setHours(0,0,0,0);
         
         brivdienasData.forEach(item => {
-            if(item.nodala === "Bars") barDateCounts[item.datums] = (barDateCounts[item.datums] || 0) + 1;
+            // Skaita dienas limitu TIKAI pilnajām brīvdienām (kad statuss ir tukšs) vai atvaļinājumiem
+            if(item.nodala === "Bars" && (item.statuss === "" || item.statuss === "Atvaļinājums")) {
+                barDateCounts[item.datums] = (barDateCounts[item.datums] || 0) + 1;
+            }
             if(item.vards === currentUser) {
                 const itemDate = new Date(item.datums);
                 if (itemDate >= today) myDates.push({ date: item.datums, statuss: item.statuss });
@@ -1064,7 +1067,8 @@
         
         // Saskaitām jau iepriekš pieteiktās brīvdienas (neiekļaujot atvaļinājumus)
         brivdienasData.forEach(item => {
-            if (item.vards === currentUser && item.statuss !== "Atvaļinājums") {
+            // Mēneša 6 dienu limitam skaita TIKAI pilnās brīvdienas (kad statuss ir tukšs)
+            if (item.vards === currentUser && item.statuss === "") {
                 let d = new Date(item.datums);
                 let mKey = d.getFullYear() + "-" + d.getMonth();
                 monthCounts[mKey] = (monthCounts[mKey] || 0) + 1;
