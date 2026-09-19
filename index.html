@@ -820,19 +820,12 @@
         } else {
             confirmBtn.className = "action-btn btn-red";
             document.getElementById('shift-comment').placeholder = "Piemēram: Reāli beidzu 23:45";
-            // 🔴 JAUNUMS: Pārbaudām, vai darbinieks NAV no Virtuves.
-            // Ja viņš ir virtuves sarakstā, mēs viņam vakarā vairs nerādām nakts čeklisti un brīdinājumus!
+            
+            // 🔴 JAUNUMS: Pārbaudām, vai darbinieks NAV no Virtuves
             const isKitchenWorker = virtuveNames.includes(currentUser);
             
             if (!isKitchenWorker && (hour >= 23 || hour < 6)) {
                 checklist.classList.remove('hidden');
-                
-                const savedBar = localStorage.getItem('mupa_active_bar');
-                if (savedBar && document.getElementById('close-bar-select')) {
-                    document.getElementById('close-bar-select').value = savedBar;
-                    updateChecklist(); 
-                }
-            }
                 
                 const savedBar = localStorage.getItem('mupa_active_bar');
                 if (savedBar && document.getElementById('close-bar-select')) {
