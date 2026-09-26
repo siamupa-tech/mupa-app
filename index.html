@@ -938,6 +938,7 @@
     let brivdienasData = [];
     let fpInstance = null;
     let fpVacationInstance = null;
+    let pilnieDatumi = []; // 🔴 JAUNUMS: Saglabās pilnos datumus atmiņā
 
     function openBrivdienas() {
         showScreen('brivdienas-screen');
@@ -1001,41 +1002,88 @@
         // 3. NOTEIKUMS: Pēc 22. datuma nākamais mēnesis ir slēgts
         let allowedMonthStart;
         if (today.getDate() > 22) {
-            // Sākot no 23. datuma, var pieteikt tikai no aiznākamā mēneša 1. datuma
             allowedMonthStart = new Date(today.getFullYear(), today.getMonth() + 2, 1);
         } else {
-            // Līdz 22. datumam (ieskaitot), var pieteikt jau nākamajam mēnesim
             allowedMonthStart = new Date(today.getFullYear(), today.getMonth() + 1, 1);
         }
         
         const isBarEmployee = barsNames.includes(currentUser);
         const barDateCounts = {};
         const myDates = []; 
+        let myMonthCounts = {}; // 🔴 JAUNUMS: Skaitīs līdzi, cik dienas iztērētas pa mēnešiem
+
         today.setHours(0,0,0,0);
         
         brivdienasData.forEach(item => {
-            // Skaita dienas limitu TIKAI pilnajām brīvdienām (kad statuss ir tukšs) vai atvaļinājumiem
+            // Skaitām, cik dienas bāram jau aizņemtas
             if(item.nodala === "Bars" && (item.statuss === "" || item.statuss === "Atvaļinājums")) {
                 barDateCounts[item.datums] = (barDateCounts[item.datums] || 0) + 1;
             }
+            
+            // Meklējam konkrētā darbinieka datus
             if(item.vards === currentUser) {
                 const itemDate = new Date(item.datums);
                 if (itemDate >= today) myDates.push({ date: item.datums, statuss: item.statuss });
+                
+                // 🔴 JAUNUMS: Saskaitām tikai PILNĀS brīvdienas konkrētajam mēnesim
+                if (item.statuss === "") {
+                    let mKey = itemDate.getFullYear() + "-" + itemDate.getMonth();
+                    myMonthCounts[mKey] = (myMonthCounts[mKey] || 0) + 1;
+                }
             }
         });
         
         renderMyBookedList(myDates);
         
-        // 1. NOTEIKUMS: Mainām limitu uz max 2 darbiniekiem vienā dienā (bāram)
-        const disabledDates = isBarEmployee ? Object.keys(barDateCounts).filter(d => barDateCounts[d] >= 2) : [];
+        // ====================================================
+        // 🔴 JAUNUMS: Zīmējam "Brīvdienu atlikuma" kastīti
+        // ====================================================
+        const monthsLV = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
+        let targetMonth1 = new Date(today.getFullYear(), today.getMonth() + 1, 1); // Nākamais mēnesis
+        let targetMonth2 = new Date(today.getFullYear(), today.getMonth() + 2, 1); // Aiznākamais mēnesis
+        
+        let count1 = myMonthCounts[targetMonth1.getFullYear() + "-" + targetMonth1.getMonth()] || 0;
+        let count2 = myMonthCounts[targetMonth2.getFullYear() + "-" + targetMonth2.getMonth()] || 0;
+
+        let limitHtml = `<strong>Tavs brīvdienu limits (max 6 mēnesī):</strong><br>`;
+        limitHtml += `📅 ${monthsLV[targetMonth1.getMonth()]}: pieteiktas <b>${count1} no 6</b><br>`;
+        
+        // Ja ir pēc 22. datuma, parādām arī aiznākamo mēnesi, jo nākamais jau ir slēgts
+        if (today.getDate() > 22) {
+            limitHtml += `📅 ${monthsLV[targetMonth2.getMonth()]}: pieteiktas <b>${count2} no 6</b>`;
+        }
+
+        // Atrodam vai izveidojam kastīti ekrānā
+        let limitDiv = document.getElementById('brivdienu-limits');
+        if (!limitDiv) {
+            limitDiv = document.createElement('div');
+            limitDiv.id = 'brivdienu-limits';
+            limitDiv.style = "margin: 15px 0; padding: 12px; background: #ebf8ff; border-radius: 8px; border-left: 4px solid #3182ce; font-size: 13.5px; color: #2b6cb0; line-height: 1.5;";
+            
+            // Ieliekam to tieši pirms "Pieteikt iezīmētās dienas" pogas
+            const btnSend = document.querySelector('button[onclick="sendBriv()"]');
+            btnSend.parentNode.insertBefore(limitDiv, btnSend);
+        }
+        limitDiv.innerHTML = limitHtml;
+        // ====================================================
+
+        // Fiksējam pilnos datumus, bet NEATSLĒDZAM tos fiziski
+        pilnieDatumi = isBarEmployee ? Object.keys(barDateCounts).filter(d => barDateCounts[d] >= 2) : [];
 
         fpInstance = flatpickr("#date-briv", {
             mode: "multiple", dateFormat: "Y-m-d", altInput: true, altFormat: "d.m.Y", locale: "lv", 
-            minDate: allowedMonthStart, // Aktivizējam 22. datuma limitu
-            disable: disabledDates,
+            minDate: allowedMonthStart, 
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 const formatStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
-                if (myDates.some(m => m.date === formatStr)) dayElem.classList.add("booked-by-me");
+                
+                if (myDates.some(m => m.date === formatStr)) {
+                    dayElem.classList.add("booked-by-me");
+                } 
+                else if (pilnieDatumi.includes(formatStr)) {
+                    dayElem.style.backgroundColor = "#e2e8f0";
+                    dayElem.style.color = "#a0aec0";
+                    dayElem.style.textDecoration = "line-through";
+                }
             }
         });
     }
@@ -1065,6 +1113,12 @@
         }
         const selectedDates = fpInstance.selectedDates.map(d => fpInstance.formatDate(d, "Y-m-d"));
         if(selectedDates.length === 0) return alert("Atzīmē vismaz vienu datumu!");
+        
+        // 🔴 JAUNUMS: Pārbauda, vai nav iezīmēta kāda "pilnā" diena
+        const hasFull = selectedDates.some(d => pilnieDatumi.includes(d));
+        if (hasFull) {
+            return alert("⚠️ Kāda no iezīmētajām dienām jau ir pilna!\n\nŠajā datumā vari pieteikt TIKAI vēlo maiņu (klikšķinot uz dzeltenās pogas 'Varu strādāt vēlāk'). Pilnu brīvdienu pieteikt vairs nevar.");
+        }
         
         // 2. NOTEIKUMS: Pārbaudām, vai nav pārsniegts 6 dienu limits mēnesī
         let monthCounts = {};
