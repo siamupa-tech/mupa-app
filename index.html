@@ -658,6 +658,14 @@
                     let chip = document.createElement("span");
                     chip.className = "worker-chip";
                     
+                    // ==========================================
+                    // 🔴 CIETAIS KODS: Brutālā lomu pārrakstīšana
+                    // ==========================================
+                    if (virtuveNames.includes(worker.name)) {
+                        worker.location = "Virtuve"; // Vienmēr būs Virtuve
+                    }
+                    // ==========================================
+                    
                     if (worker.location === "Alus Muiža") {
                         chip.style.background = "#feebc8"; chip.style.color = "#c05621";      
                         chip.innerHTML = '<i class="fas fa-beer" style="font-size:11px; margin-right:4px; color:#dd6b20;"></i> ' + worker.name;
@@ -1025,8 +1033,9 @@
                 const itemDate = new Date(item.datums);
                 if (itemDate >= today) myDates.push({ date: item.datums, statuss: item.statuss });
                 
-                // 🔴 JAUNUMS: Saskaitām tikai PILNĀS brīvdienas konkrētajam mēnesim
-                if (item.statuss === "") {
+                // 🔴 IZLABOTS: Skaitām gan tukšos, gan tās brīvdienas, ko vadītājs atzīmējis kā "ok" vai "grafikā"
+                let statussTxt = item.statuss.toLowerCase().trim();
+                if (statussTxt === "" || statussTxt === "ok" || statussTxt.includes("grafik")) {
                     let mKey = itemDate.getFullYear() + "-" + itemDate.getMonth();
                     myMonthCounts[mKey] = (myMonthCounts[mKey] || 0) + 1;
                 }
@@ -1045,7 +1054,7 @@
         let count1 = myMonthCounts[targetMonth1.getFullYear() + "-" + targetMonth1.getMonth()] || 0;
         let count2 = myMonthCounts[targetMonth2.getFullYear() + "-" + targetMonth2.getMonth()] || 0;
 
-        let limitHtml = `<strong>Tavs brīvdienu limits (max 6 mēnesī):</strong><br>`;
+        let limitHtml = `<strong>Tavs pieteikto brīvdienu limits (max 6 mēnesī):</strong><br>`;
         limitHtml += `📅 ${monthsLV[targetMonth1.getMonth()]}: pieteiktas <b>${count1} no 6</b><br>`;
         
         // Ja ir pēc 22. datuma, parādām arī aiznākamo mēnesi, jo nākamais jau ir slēgts
@@ -1125,11 +1134,14 @@
         
         // Saskaitām jau iepriekš pieteiktās brīvdienas (neiekļaujot atvaļinājumus)
         brivdienasData.forEach(item => {
-            // Mēneša 6 dienu limitam skaita TIKAI pilnās brīvdienas (kad statuss ir tukšs)
-            if (item.vards === currentUser && item.statuss === "") {
-                let d = new Date(item.datums);
-                let mKey = d.getFullYear() + "-" + d.getMonth();
-                monthCounts[mKey] = (monthCounts[mKey] || 0) + 1;
+            if (item.vards === currentUser) {
+                // 🔴 IZLABOTS: Arī šeit skaitām kopā gan tukšās, gan jau apstiprinātās ("ok") brīvdienas!
+                let statussTxt = item.statuss.toLowerCase().trim();
+                if (statussTxt === "" || statussTxt === "ok" || statussTxt.includes("grafik")) {
+                    let d = new Date(item.datums);
+                    let mKey = d.getFullYear() + "-" + d.getMonth();
+                    monthCounts[mKey] = (monthCounts[mKey] || 0) + 1;
+                }
             }
         });
         
