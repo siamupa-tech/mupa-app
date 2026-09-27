@@ -272,6 +272,9 @@
         <h3 style="color:#2d3748; margin-bottom:10px; font-size: 16px;"><i class="fas fa-plane-departure" style="margin-right: 8px;"></i> Atvaļinājums (Periods)</h3>
         <p style="font-size:13px; color:#718096; text-align:center; margin-top:0;">Iezīmē sākuma un beigu datumu.<br>Piekļuve liegta dienās, kad cits kolēģis jau paņēmis atvaļinājumu.</p>
         
+        <div id="vacation-fund-info" style="background: #f0fff4; border-left: 4px solid #38a169; padding: 12px; margin-bottom: 15px; border-radius: 6px; font-size: 13.5px; color: #276749;">
+            <i class='fas fa-spinner fa-spin'></i> Ielādē atvaļinājuma atlikumu...
+        </div>
         <input type="text" id="date-atvalinajums" placeholder="Izvēlies periodu (No - Līdz)">
         <button class="action-btn" style="background:#d69e2e; color:white;" onclick="sendAtvalinajums()">Pieteikt atvaļinājumu</button>
 
@@ -510,7 +513,7 @@
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbzhmeAM701_gac0n9snwcA_PFjpojwd8zGr80sf6qC2d9f4BPBTz929_N4CWAQeIqE/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbxhOhP-LjaC0KpRbHAUzZ1H8kBfp_wsTf4hB3S96qoTKXeUfgLtmHH7mvRzA_3dJgA/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -524,6 +527,7 @@
     const allNames = [...adminNames, ...barsNames, ...virtuveNames].sort();
     
     let currentUser = "";
+    let atvalinajumaAtlikums = 0;
     let pendingShiftAction = "";
     let detectedBarName = "";
 
@@ -969,6 +973,21 @@
                 initVacationCalendar(vacRes.data || []); 
             });
         }).catch(err => { document.getElementById('briv-status').innerText = "Neizdevās ielādēt vēsturi."; });
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "get_vacation_fund", name: currentUser })
+        }).then(res => res.json()).then(res => {
+            if (res.status === "ok") {
+                atvalinajumaAtlikums = res.atlikums;
+                document.getElementById('vacation-fund-info').innerHTML = 
+                    `<strong>🌴 Atvaļinājumu fonds (${new Date().getFullYear()}. gadam):</strong><br>
+                    Pieejamas kopā: <b>${res.budzets}</b> (Izmantotas: ${res.izteretas})<br>
+                    <span style="font-size: 15px; color: #22543d; margin-top: 5px; display: inline-block;">
+                        Tavs atlikums: <b>${res.atlikums} dienas</b>
+                    </span><br>
+                    <span style="font-size:12px; color:#4a5568;">ℹ️ Slodzes koeficients naudai: ${res.koeficients}</span>`;
+            }
+        });
     }
 
     function initVacationCalendar(disabledDatesArray) {
@@ -982,6 +1001,16 @@
         if(selectedDates.length !== 2) return alert("Iezīmē sākuma un beigu datumu!");
         const dateFrom = fpVacationInstance.formatDate(selectedDates[0], "Y-m-d");
         const dateTo = fpVacationInstance.formatDate(selectedDates[1], "Y-m-d");
+        const msPerDay = 1000 * 60 * 60 * 24;
+        const daysRequested = Math.round((selectedDates[1] - selectedDates[0]) / msPerDay) + 1;
+        
+        if (daysRequested > atvalinajumaAtlikums) {
+            return alert(`⚠️ Tu mēģini paņemt ${daysRequested} dienas, bet tavā atlikumā ir tikai ${atvalinajumaAtlikums}!\n\nLūdzu, samazini periodu vai sazinies ar vadību.`);
+        }
+        
+        if (daysRequested < 7) {
+            if(!confirm(`Tu iezīmēji ${daysRequested} dienas. Parasti atvaļinājumu ņem pilnās nedēļās (7 dienas). Vai tiešām vēlies turpināt?`)) return;
+        }
         let nodala = "Bars";
         if (adminNames.includes(currentUser)) {
             nodala = "Vadiba";
