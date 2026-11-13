@@ -19,19 +19,50 @@
     <link rel="apple-touch-icon" href="MUPA_logo_web.png">
     <link rel="icon" type="image/png" href="MUPA_logo_web.png">
 
-    <!-- ONESIGNAL WEB PUSH INTEGRĀCIJA PRIKEŠ /mupa-app/ -->
+    <!-- ONESIGNAL WEB PUSH INTEGRĀCIJA PRIEKŠ /mupa-app/ -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
           appId: "0c83d380-d3a2-4046-bbe3-b4147b38cc3d",
-          afari_web_id: "web.onesignal.auto.1947bcbb-3df5-45a5-b464-0be0e15f4a2c"
-          serviceWorkerPath: "/mupa-app/OneSignalSDKWorker.js",
-          serviceWorkerParam: { scope: "/mupa-app/" },
-          notifyButton: { enable: true }
+          safari_web_id: "web.onesignal.auto.1947bcbb-3df5-45a5-b464-0be0e15f4a2c",
+          serviceWorkerPath: "mupa-app/OneSignalSDKWorker.js",
+          serviceWorkerParam: { scope: "/mupa-app/" }
         });
+        checkPushButtonStatus();
       });
+
+      function checkPushButtonStatus() {
+        if (!window.OneSignalDeferred) return;
+        OneSignalDeferred.push(function(OneSignal) {
+          const btn = document.getElementById('enable-push-btn');
+          if (!btn) return;
+          if (OneSignal.Notifications.permission) {
+            btn.classList.add('hidden'); // Ja jau ieslēgts, pogu nerādām!
+          } else {
+            btn.classList.remove('hidden'); // Ja nav ieslēgts, parādām pogu!
+          }
+        });
+      }
+
+      function enablePushNotifications() {
+        if (!window.OneSignalDeferred) return alert("OneSignal vēl ielādējas. Pamēģini pēc 3 sekundēm!");
+        OneSignalDeferred.push(async function(OneSignal) {
+          try {
+            await OneSignal.Notifications.requestPermission();
+            if (currentUser) await OneSignal.login(currentUser);
+            checkPushButtonStatus();
+            if (OneSignal.Notifications.permission) {
+              alert("✅ Super! Paziņojumi šim telefonam ir veiksmīgi ieslēgti!");
+            } else {
+              alert("⚠️ Paziņojumi netika atļauti. Ja izmanto iPhone, pārliecinies, ka atvēri MUPA no sākumekrāna ikonas (Add to Home Screen)!");
+            }
+          } catch (e) {
+            alert("Kļūda ieslēdzot paziņojumus: " + e.message);
+          }
+        });
+      }
     </script>
 
     <style>
@@ -162,6 +193,10 @@
     <button class="refresh-floating" onclick="refreshDashboardData()"><i class="fas fa-rotate"></i></button>
     
     <div class="info-wall" id="info-wall-container">
+        <!-- POGA PAZIŅOJUMU IESLĒGŠANAI TELEFONĀ -->
+    <button id="enable-push-btn" class="action-btn hidden" style="background: #3182ce; color: white; margin-top: 0; margin-bottom: 20px; padding: 12px; font-size: 14px; box-shadow: 0 4px 6px rgba(49,130,206,0.3);" onclick="enablePushNotifications()">
+        <i class="fas fa-bell" style="margin-right: 8px;"></i> Ieslēgt paziņojumus telefonā
+    </button>
         <h4><i class="fas fa-thumbtack" style="margin-right: 8px;"></i> Aktuālie paziņojumi</h4>
         <ul id="info-wall-list">
             <li>Ielādē paziņojumus...</li>
@@ -649,6 +684,7 @@
         loadActiveWorkers(); 
         loadCleaningStatus();
         loadShiftMarket();
+        checkPushButtonStatus();
         showScreen('dashboard-screen');
         checkMandatoryAlerts();
     }
