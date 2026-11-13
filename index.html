@@ -664,68 +664,90 @@
 
     function setupDashboard() {
         document.getElementById('welcome-text').innerText = "Sveiki, " + currentUser + "!";
+        applyHolidayMood(); // <--- Šeit mēs PALAIŽAM svētku noskaņu!
+        
         document.getElementById('shift-actions').classList.remove('hidden');
-        // ==========================================
+        
+        if (adminNames.includes(currentUser)) {
+            document.getElementById('btn-admin').classList.remove('hidden');
+        } else {
+            document.getElementById('btn-admin').classList.add('hidden');
+        }
+
+        // Piesaistām darbinieka vārdu viņa telefona Web Push paziņojumiem!
+        if (window.OneSignalDeferred) {
+            OneSignalDeferred.push(async function(OneSignal) {
+                try { await OneSignal.login(currentUser); } catch(e) {}
+            });
+        }
+        
+        if (typeof checkPushButtonStatus === "function") checkPushButtonStatus();
+        loadInfoWall();
+        loadTodayReservationsWidget();
+        loadActiveWorkers(); 
+        loadCleaningStatus();
+        loadShiftMarket();
+        showScreen('dashboard-screen');
+        checkMandatoryAlerts();
+    }
+
+    // ==========================================
     // AUTOMĀTISKAIS SVĒTKU NOSKAŅAS (MOOD) MODULIS
     // ==========================================
     function applyHolidayMood() {
         const now = new Date();
-        const m = now.getMonth() + 1; // 1 = Janvāris ... 11 = Novembris, 12 = Decembris
+        const m = now.getMonth() + 1;
         const d = now.getDate();
         const welcomeEl = document.getElementById('welcome-text');
         const dashCard = document.getElementById('dashboard-screen');
         if (!welcomeEl || !dashCard) return;
 
-        let badge = "";
+        let badgeHtml = "";
         let topBorder = "";
         let particles = [];
 
-        // 1. Patriotu nedēļa (11. - 18. novembris) un 4. maijs
+        // 1. Patriotu nedēļa (11. - 18. novembris) un 4. maijs (SVG karodziņš)
         if ((m === 11 && d >= 11 && d <= 18) || (m === 5 && d === 4)) {
-            badge = " 🇱🇻";
-            topBorder = "linear-gradient(90deg, #9E1B34 0%, #9E1B34 40%, #ffffff 40%, #ffffff 60%, #9E1B34 60%, #9E1B34 100%)";
+            badgeHtml = ` <svg width="26" height="16" viewBox="0 0 26 16" style="vertical-align:middle; border-radius:3px; box-shadow:0 1px 3px rgba(0,0,0,0.3); margin-left:6px;"><rect width="26" height="16" fill="#9E1B34"/><rect y="6" width="26" height="4" fill="#FFFFFF"/></svg>`;
+            topBorder = "linear-gradient(90deg, #9E1B34 0%, #9E1B34 38%, #ffffff 38%, #ffffff 62%, #9E1B34 62%, #9E1B34 100%)";
         }
         // 2. Ziemassvētku laiks (15. - 30. decembris)
         else if (m === 12 && d >= 15 && d <= 30) {
-            badge = " 🎄";
+            badgeHtml = " 🎄";
             topBorder = "linear-gradient(90deg, #2f855a, #c53030, #2f855a)";
             particles = ["❄️", "❅", "❆"];
         }
-        // 3. Vecgada vakars un Jaunais gads (30. dec - 1. jan)
+        // 3. Vecgada vakars un Jaunais gads (31. dec - 1. jan)
         else if ((m === 12 && d === 31) || (m === 1 && d === 1)) {
-            badge = " 🥂✨";
+            badgeHtml = " 🥂✨";
             topBorder = "linear-gradient(90deg, #d69e2e, #ecc94b, #d69e2e)";
             particles = ["✨", "🎉", "⭐"];
         }
         // 4. Jāņi / Līgo (21. - 24. jūnijs)
         else if (m === 6 && d >= 21 && d <= 24) {
-            badge = " 🌿🔥";
+            badgeHtml = " 🌿🔥";
             topBorder = "linear-gradient(90deg, #276749, #ecc94b, #dd6b20)";
         }
         // 5. Helovīns (28. - 31. oktobris)
         else if (m === 10 && d >= 28 && d <= 31) {
-            badge = " 🎃";
+            badgeHtml = " 🎃";
             topBorder = "linear-gradient(90deg, #dd6b20, #1a202c, #dd6b20)";
             particles = ["🎃", "🦇", "👻"];
         }
         // 6. Lieldienas (aprīļa sākums / vidus)
         else if (m === 4 && d >= 3 && d <= 6) {
-            badge = " 🐣🌷";
+            badgeHtml = " 🐣🌷";
             topBorder = "linear-gradient(90deg, #ecc94b, #68d391, #f687b3)";
         }
 
-        // Pievienojam svētku simbolu sveicienam
-        if (badge && !welcomeEl.innerText.includes(badge.trim())) {
-            welcomeEl.innerText = "Sveiki, " + currentUser + "!" + badge;
-        }
+        welcomeEl.innerHTML = "Sveiki, " + currentUser + "!" + badgeHtml;
 
-        // Pievienojam svētku lentīti kartītes augšpusē
         let ribbon = document.getElementById('holiday-ribbon');
         if (topBorder) {
             if (!ribbon) {
                 ribbon = document.createElement('div');
                 ribbon.id = 'holiday-ribbon';
-                ribbon.style.cssText = "position:absolute; top:0; left:0; right:0; height:7px; border-radius:12px 12px 0 0; z-index:5;";
+                ribbon.style.cssText = "position:absolute; top:0; left:0; right:0; height:8px; border-radius:12px 12px 0 0; z-index:5; box-shadow: 0 1px 3px rgba(0,0,0,0.15);";
                 dashCard.prepend(ribbon);
             }
             ribbon.style.background = topBorder;
@@ -733,7 +755,6 @@
             ribbon.remove();
         }
 
-        // Palaižam krītošās daļiņas (sniegu/konfeti), ja tās paredzētas
         startHolidayParticles(particles);
     }
 
