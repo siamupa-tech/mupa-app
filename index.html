@@ -1319,7 +1319,12 @@
                     let totalHours = 0;
                     const wdNames = ["Svētdiena", "Pirmdiena", "Otrdiena", "Trešdiena", "Ceturtdiena", "Piektdiena", "Sestdiena"];
                     
+                    // Šodienas datums (bez pulksteņa), lai nerādītu pogu pagājušām dienām
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
                     res.data.forEach(item => {
+                        let shiftHoursThisDay = 0;
                         let shiftParts = item.shift.split(" un ");
                         shiftParts.forEach(p => {
                             let match = p.match(/(\d{1,2})(?:[:.](\d{2}))?\s*-\s*(\d{1,2})(?:[:.](\d{2}))?/);
@@ -1331,9 +1336,10 @@
                                 let start = h1 + (m1 / 60);
                                 let end = h2 + (m2 / 60);
                                 if (end <= start) end += 24;
-                                totalHours += (end - start);
+                                shiftHoursThisDay += (end - start);
                             }
                         });
+                        totalHours += shiftHoursThisDay;
 
                         let locBadge = "";
                         if (item.location === "Alus Muiža") locBadge = `<div style="margin-top:6px;"><span style="background:#feebc8; color:#c05621; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-beer" style="margin-right:4px;"></i> Alus Muiža</span></div>`;
@@ -1345,18 +1351,31 @@
                         let dayNum = parseInt(item.date);
                         let weekdayName = "";
                         let isWeekend = false;
+                        let isFutureOrToday = true;
                         
                         if (!isNaN(dayNum)) {
                             let dObj = new Date(targetDate.getFullYear(), targetDate.getMonth(), dayNum);
                             let wd = dObj.getDay();
                             isWeekend = (wd === 0 || wd === 6);
                             weekdayName = wdNames[wd];
+                            isFutureOrToday = (dObj >= today);
                         }
                         
                         let isDark = document.body.classList.contains("dark-mode");
                         let weekendBg = isDark ? "background: rgba(255, 255, 255, 0.08);" : "background: #edf2f7;";
                         let rowBg = isWeekend ? `${weekendBg} border-radius: 8px;` : "background: transparent;";
                         
+                        // ✅ POGA RĀDĀS TIKAI TAD, JA IR REĀLAS DARBA STUNDAS (> 0), IR LOKĀCIJA UN DIENA NAV PAGĀTNĒ
+                        let offerBtnHtml = "";
+                        if (shiftHoursThisDay > 0 && item.location && isFutureOrToday) {
+                            offerBtnHtml = `
+                                <div style="margin-top:6px;">
+                                    <button onclick="event.stopPropagation(); offerMyShift('${sheetName}', '${item.date}', '${item.shift}', '${item.location}')" style="background:#edf2f7; color:#4a5568; border:1px solid #cbd5e0; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                                        🔄 Atdot maiņu
+                                    </button>
+                                </div>`;
+                        }
+
                         html += `<div onclick="openColleaguesModal('${sheetName}', '${item.date}')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding:12px 10px; margin-bottom:4px; ${rowBg}">
                             <div>
                                 <strong style="color:#2d3748; font-size:16px;">${item.date} <i class="fas fa-users" style="color:#cbd5e0; font-size:12px; margin-left:6px;"></i></strong>
@@ -1365,11 +1384,7 @@
                             <div style="text-align:right;">
                                 <span style="background:#ebf8ff; color:#3182ce; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:15px;">${item.shift}</span>
                                 ${locBadge}
-                                <div style="margin-top:6px;">
-                                    <button onclick="event.stopPropagation(); offerMyShift('${sheetName}', '${item.date}', '${item.shift}', '${item.location}')" style="background:#edf2f7; color:#4a5568; border:1px solid #cbd5e0; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
-                                        🔄 Atdot maiņu
-                                    </button>
-                                </div>
+                                ${offerBtnHtml}
                             </div>
                         </div>`;
                     });
