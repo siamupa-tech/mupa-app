@@ -812,9 +812,10 @@
             confirmBtn.className = "action-btn btn-red";
             document.getElementById('shift-comment').placeholder = "Piemēram: Reāli beidzu 23:45";
             
-            const isKitchenWorker = virtuveNames.includes(currentUser);
+            // ✅ Rādām nakts sarakstu TIKAI Bāra darbiniekiem!
+            const isBarWorker = barsNames.includes(currentUser);
             
-            if (!isKitchenWorker && (hour >= 23 || hour < 6)) {
+            if (isBarWorker && (hour >= 23 || hour < 6)) {
                 checklist.classList.remove('hidden');
                 
                 const savedBar = localStorage.getItem('mupa_active_bar');
@@ -830,7 +831,10 @@
     function confirmShift(isForce = false, forceReason = "") {
         const hour = new Date().getHours();
         
-        if (pendingShiftAction === "Beigt maiņu" && (hour >= 23 || hour < 6)) {
+        // ✅ Pārbaudām nakts kontroles punktus TIKAI Bāra darbiniekiem!
+        const isBarWorker = barsNames.includes(currentUser);
+        
+        if (isBarWorker && pendingShiftAction === "Beigt maiņu" && (hour >= 23 || hour < 6)) {
             const selectedBar = document.getElementById('close-bar-select').value;
             if (selectedBar === "") {
                 alert("⚠️ Lūdzu, izvēlies, kuru bāru tu slēdz!");
