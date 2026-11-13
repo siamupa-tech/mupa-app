@@ -189,7 +189,12 @@
             Beigt maiņu
         </button>
     </div>
-
+<!-- MAIŅU BIRŽAS MODULIS SĀKUMEKRĀNĀ -->
+    <div id="shift-market-box" class="info-wall hidden" style="background: #fff5f5; border-left: 5px solid #e53e3e; margin-bottom: 20px;">
+        <h4 style="color: #c53030; margin: 0 0 10px 0;"><i class="fas fa-fire" style="margin-right: 8px;"></i> Brīvās maiņas (Maiņu birža)</h4>
+        <div id="shift-market-list"></div>
+    </div>
+    
     <!-- Lielās tīrīšanas modulis -->
     <div class="info-wall" style="background: #fffaf0; border-left-color: #ed8936; margin-bottom: 25px;">
         <h4 style="color: #dd6b20; margin: 0 0 10px 0;"><i class="fas fa-broom" style="margin-right: 8px;"></i> Lielā tīrīšana (Gust.)</h4>
@@ -644,6 +649,7 @@
         loadTodayReservationsWidget();
         loadActiveWorkers(); 
         loadCleaningStatus();
+        loadShiftMarket();
         showScreen('dashboard-screen');
         checkMandatoryAlerts();
     }
@@ -1326,7 +1332,6 @@
     }
 
     function loadSchedule(monthOffset) {
-        // Pogu vizuālais noformējums
         const btnThis = document.getElementById('btn-this-month');
         const btnNext = document.getElementById('btn-next-month');
         
@@ -1340,7 +1345,6 @@
 
         const months = ["Janvāris", "Februāris", "Marts", "Aprīlis", "Maijs", "Jūnijs", "Jūlijs", "Augusts", "Septembris", "Oktobris", "Novembris", "Decembris"];
         
-        // Nosakām gadu un mēnesi, kuru šobrīd skatāmies
         const targetDate = new Date();
         targetDate.setDate(1);
         targetDate.setMonth(targetDate.getMonth() + monthOffset);
@@ -1358,11 +1362,10 @@
             if(res.status === "ok") {
                 if (res.data && res.data.length > 0) {
                     let html = "";
-                    let totalHours = 0; // JAUNUMS: Stundu skaitītājs šim mēnesim
+                    let totalHours = 0;
                     const wdNames = ["Svētdiena", "Pirmdiena", "Otrdiena", "Trešdiena", "Ceturtdiena", "Piektdiena", "Sestdiena"];
                     
                     res.data.forEach(item => {
-                        // JAUNUMS: Matemātika, kas prot aprēķināt stundas (pat nakts maiņām un dubultajām maiņām)
                         let shiftParts = item.shift.split(" un ");
                         shiftParts.forEach(p => {
                             let match = p.match(/(\d{1,2})(?:[:.](\d{2}))?\s*-\s*(\d{1,2})(?:[:.](\d{2}))?/);
@@ -1373,7 +1376,7 @@
                                 let m2 = match[4] ? parseInt(match[4], 10) : 0;
                                 let start = h1 + (m1 / 60);
                                 let end = h2 + (m2 / 60);
-                                if (end <= start) end += 24; // Ja iet pāri pusnaktij
+                                if (end <= start) end += 24;
                                 totalHours += (end - start);
                             }
                         });
@@ -1385,7 +1388,6 @@
                         else if (item.location === "Apkope") locBadge = `<div style="margin-top:6px;"><span style="background:#e2e8f0; color:#2b6cb0; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-broom" style="margin-right:4px;"></i> Apkope</span></div>`;
                         else if (item.location === "Noliktava") locBadge = `<div style="margin-top:6px;"><span style="background:#e9d8fd; color:#6b46c1; font-size:11px; padding:3px 8px; border-radius:12px; font-weight:bold;"><i class="fas fa-boxes-stacked" style="margin-right:4px;"></i> Noliktava</span></div>`;
                         
-                        // Aprēķinām nedēļas dienu šim datumam
                         let dayNum = parseInt(item.date);
                         let weekdayName = "";
                         let isWeekend = false;
@@ -1397,7 +1399,6 @@
                             weekdayName = wdNames[wd];
                         }
                         
-                        // Gudrais fons, kas pielāgojas dienas/nakts režīmam
                         let isDark = document.body.classList.contains("dark-mode");
                         let weekendBg = isDark ? "background: rgba(255, 255, 255, 0.08);" : "background: #edf2f7;";
                         let rowBg = isWeekend ? `${weekendBg} border-radius: 8px;` : "background: transparent;";
@@ -1410,13 +1411,16 @@
                             <div style="text-align:right;">
                                 <span style="background:#ebf8ff; color:#3182ce; padding:6px 12px; border-radius:6px; font-weight:bold; font-size:15px;">${item.shift}</span>
                                 ${locBadge}
+                                <div style="margin-top:6px;">
+                                    <button onclick="event.stopPropagation(); offerMyShift('${sheetName}', '${item.date}', '${item.shift}', '${item.location}')" style="background:#edf2f7; color:#4a5568; border:1px solid #cbd5e0; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer;">
+                                        🔄 Atdot maiņu
+                                    </button>
+                                </div>
                             </div>
                         </div>`;
                     });
                     
-                    // JAUNUMS: Pievienojam sarēķinātās stundas tieši zem mēneša nosaukuma!
                     document.getElementById('schedule-month-text').innerHTML = `${sheetName}<br><span style="font-size:14px; font-weight:normal; color:#718096;">Prognozētais apjoms: <b style="color:#3182ce;">~${totalHours.toFixed(1)} h</b></span>`;
-                    
                     container.innerHTML = html;
                 } else {
                     document.getElementById('schedule-month-text').innerHTML = sheetName;
@@ -1580,6 +1584,7 @@
         loadInfoWall(); 
         loadActiveWorkers(); 
         loadCleaningStatus();
+        loadShiftMarket();
         setTimeout(() => { if(btn) btn.classList.remove("fa-spin"); }, 1000);
     }
 
