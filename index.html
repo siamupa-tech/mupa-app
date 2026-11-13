@@ -39,9 +39,9 @@
           const btn = document.getElementById('enable-push-btn');
           if (!btn) return;
           if (OneSignal.Notifications.permission) {
-            btn.classList.add('hidden'); // Ja jau ieslēgts, pogu nerādām!
+            btn.classList.add('hidden');
           } else {
-            btn.classList.remove('hidden'); // Ja nav ieslēgts, parādām pogu!
+            btn.classList.remove('hidden');
           }
         });
       }
@@ -193,15 +193,16 @@
     <button class="refresh-floating" onclick="refreshDashboardData()"><i class="fas fa-rotate"></i></button>
     
     <div class="info-wall" id="info-wall-container">
-        <!-- POGA PAZIŅOJUMU IESLĒGŠANAI TELEFONĀ -->
-    <button id="enable-push-btn" class="action-btn hidden" style="background: #3182ce; color: white; margin-top: 0; margin-bottom: 20px; padding: 12px; font-size: 14px; box-shadow: 0 4px 6px rgba(49,130,206,0.3);" onclick="enablePushNotifications()">
-        <i class="fas fa-bell" style="margin-right: 8px;"></i> Ieslēgt paziņojumus telefonā
-    </button>
         <h4><i class="fas fa-thumbtack" style="margin-right: 8px;"></i> Aktuālie paziņojumi</h4>
         <ul id="info-wall-list">
             <li>Ielādē paziņojumus...</li>
         </ul>
     </div>
+
+    <!-- POGA PAZIŅOJUMU IESLĒGŠANAI TELEFONĀ -->
+    <button id="enable-push-btn" class="action-btn hidden" style="background: #3182ce; color: white; margin-top: 0; margin-bottom: 20px; padding: 12px; font-size: 14px; box-shadow: 0 4px 6px rgba(49,130,206,0.3);" onclick="enablePushNotifications()">
+        <i class="fas fa-bell" style="margin-right: 8px;"></i> Ieslēgt paziņojumus telefonā
+    </button>
 
     <div id="today-reservations-widget" class="today-res-box" onclick="showReservations()"></div>
 
@@ -664,8 +665,7 @@
 
     function setupDashboard() {
         document.getElementById('welcome-text').innerText = "Sveiki, " + currentUser + "!";
-        applyHolidayMood(); // <--- Šeit mēs PALAIŽAM svētku noskaņu!
-        
+        applyHolidayMood();
         document.getElementById('shift-actions').classList.remove('hidden');
         
         if (adminNames.includes(currentUser)) {
@@ -674,7 +674,6 @@
             document.getElementById('btn-admin').classList.add('hidden');
         }
 
-        // Piesaistām darbinieka vārdu viņa telefona Web Push paziņojumiem!
         if (window.OneSignalDeferred) {
             OneSignalDeferred.push(async function(OneSignal) {
                 try { await OneSignal.login(currentUser); } catch(e) {}
@@ -706,35 +705,29 @@
         let topBorder = "";
         let particles = [];
 
-        // 1. Patriotu nedēļa (11. - 18. novembris) un 4. maijs (SVG karodziņš)
         if ((m === 11 && d >= 11 && d <= 18) || (m === 5 && d === 4)) {
             badgeHtml = ` <svg width="26" height="16" viewBox="0 0 26 16" style="vertical-align:middle; border-radius:3px; box-shadow:0 1px 3px rgba(0,0,0,0.3); margin-left:6px;"><rect width="26" height="16" fill="#9E1B34"/><rect y="6" width="26" height="4" fill="#FFFFFF"/></svg>`;
             topBorder = "linear-gradient(90deg, #9E1B34 0%, #9E1B34 38%, #ffffff 38%, #ffffff 62%, #9E1B34 62%, #9E1B34 100%)";
         }
-        // 2. Ziemassvētku laiks (15. - 30. decembris)
         else if (m === 12 && d >= 15 && d <= 30) {
             badgeHtml = " 🎄";
             topBorder = "linear-gradient(90deg, #2f855a, #c53030, #2f855a)";
             particles = ["❄️", "❅", "❆"];
         }
-        // 3. Vecgada vakars un Jaunais gads (31. dec - 1. jan)
         else if ((m === 12 && d === 31) || (m === 1 && d === 1)) {
             badgeHtml = " 🥂✨";
             topBorder = "linear-gradient(90deg, #d69e2e, #ecc94b, #d69e2e)";
             particles = ["✨", "🎉", "⭐"];
         }
-        // 4. Jāņi / Līgo (21. - 24. jūnijs)
         else if (m === 6 && d >= 21 && d <= 24) {
             badgeHtml = " 🌿🔥";
             topBorder = "linear-gradient(90deg, #276749, #ecc94b, #dd6b20)";
         }
-        // 5. Helovīns (28. - 31. oktobris)
         else if (m === 10 && d >= 28 && d <= 31) {
             badgeHtml = " 🎃";
             topBorder = "linear-gradient(90deg, #dd6b20, #1a202c, #dd6b20)";
             particles = ["🎃", "🦇", "👻"];
         }
-        // 6. Lieldienas (aprīļa sākums / vidus)
         else if (m === 4 && d >= 3 && d <= 6) {
             badgeHtml = " 🐣🌷";
             topBorder = "linear-gradient(90deg, #ecc94b, #68d391, #f687b3)";
@@ -785,29 +778,6 @@
             p.style.cssText = `position:absolute; top:-30px; left:${left}%; font-size:${size}px; animation: mupaFall ${dur}s linear ${delay}s infinite; opacity:0.75;`;
             container.appendChild(p);
         }
-    }
-        
-        if (adminNames.includes(currentUser)) {
-            document.getElementById('btn-admin').classList.remove('hidden');
-        } else {
-            document.getElementById('btn-admin').classList.add('hidden');
-        }
-
-        // Piesaistām darbinieka vārdu viņa telefona Web Push paziņojumiem!
-        if (window.OneSignalDeferred) {
-            OneSignalDeferred.push(async function(OneSignal) {
-                try { await OneSignal.login(currentUser); } catch(e) {}
-            });
-        }
-        
-        loadInfoWall();
-        loadTodayReservationsWidget();
-        loadActiveWorkers(); 
-        loadCleaningStatus();
-        loadShiftMarket();
-        checkPushButtonStatus();
-        showScreen('dashboard-screen');
-        checkMandatoryAlerts();
     }
 
     function loadActiveWorkers() {
@@ -993,7 +963,6 @@
             confirmBtn.className = "action-btn btn-red";
             document.getElementById('shift-comment').placeholder = "Piemēram: Reāli beidzu 23:45";
             
-            // ✅ Rādām nakts sarakstu TIKAI Bāra darbiniekiem!
             const isBarWorker = barsNames.includes(currentUser);
             
             if (isBarWorker && (hour >= 23 || hour < 6)) {
@@ -1011,8 +980,6 @@
 
     function confirmShift(isForce = false, forceReason = "") {
         const hour = new Date().getHours();
-        
-        // ✅ Pārbaudām nakts kontroles punktus TIKAI Bāra darbiniekiem!
         const isBarWorker = barsNames.includes(currentUser);
         
         if (isBarWorker && pendingShiftAction === "Beigt maiņu" && (hour >= 23 || hour < 6)) {
@@ -1549,7 +1516,6 @@
                         let weekendBg = isDark ? "background: rgba(255, 255, 255, 0.08);" : "background: #edf2f7;";
                         let rowBg = isWeekend ? `${weekendBg} border-radius: 8px;` : "background: transparent;";
                         
-                        // ✅ Poga "Atdot maiņu" rādās TIKAI tad, ja ir reālas darba stundas un diena nav pagātnē
                         let offerBtnHtml = "";
                         if (shiftHoursThisDay > 0 && item.location && isFutureOrToday) {
                             offerBtnHtml = `
@@ -1661,6 +1627,7 @@
 
     let adminFpInstance = null;
     let allBrivDataByDate = {}; 
+    let selectedAdminDate = "";
 
     function loadAdminBrivdienas() {
         const detailsDiv = document.getElementById('admin-briv-details');
@@ -1674,32 +1641,115 @@
                     if(p.length === 3) dateStr = `${p[2].trim()}-${p[1].trim()}-${p[0].trim()}`;
                 }
                 if (!allBrivDataByDate[dateStr]) allBrivDataByDate[dateStr] = [];
-                let tag = item.statuss === "Atvaļinājums" ? "🌴 Atvaļ." : "☕ Brīvdiena";
-                allBrivDataByDate[dateStr].push(`<div style="padding: 4px 0;"><strong style="color:#2d3748;">${item.vards}</strong> <span style="color:#718096; font-size:12px;">(${tag} - ${item.nodala})</span></div>`);
+                allBrivDataByDate[dateStr].push({
+                    vards: item.vards,
+                    nodala: item.nodala,
+                    statuss: item.statuss || "",
+                    date: dateStr
+                });
             });
             initAdminCalendar();
+            if (selectedAdminDate) renderAdminDateDetails(selectedAdminDate);
         }).catch(err => { detailsDiv.innerHTML = "<span style='color:#e53e3e;'>Neizdevās ielādēt datus. Pārbaudi savienojumu.</span>"; });
+    }
+
+    function renderAdminDateDetails(dateStr) {
+        selectedAdminDate = dateStr;
+        const detailsDiv = document.getElementById('admin-briv-details');
+        const parts = dateStr.split('-'); 
+        const lvDate = `${parts[2]}.${parts[1]}.${parts[0]}`; 
+        const items = allBrivDataByDate[dateStr] || [];
+
+        if (items.length === 0) {
+            detailsDiv.innerHTML = `<div style="margin-bottom:8px; color:#718096; font-weight:bold;">📅 ${lvDate}</div><span style='color:#a0aec0;'>Šajā dienā neviens nav pieteicis brīvdienas.</span>`;
+            return;
+        }
+
+        let html = `<div style="margin-bottom:10px; color:#2b6cb0; font-weight:bold; font-size:15px;">📅 ${lvDate} pieteikumi:</div>`;
+        
+        items.forEach(item => {
+            let st = item.statuss.trim();
+            let isApproved = (st === "OK" || st === "Atvaļinājums" || st.includes("(OK)") || st.toLowerCase().includes("grafik"));
+            
+            let tag = "☕ Brīvdiena";
+            if (st === "Atvaļinājums") tag = "🌴 Atvaļinājums";
+            else if (st.indexOf("Var no") !== -1) tag = "🕒 " + st;
+
+            let rightSide = "";
+            if (isApproved) {
+                rightSide = `<span style="background:#c6f6d5; color:#22543d; padding:4px 10px; border-radius:6px; font-size:12px; font-weight:bold;">✅ ${st === "Atvaļinājums" ? "Atvaļ." : "OK"}</span>`;
+            } else {
+                rightSide = `<button onclick="approveBrivdiena('${item.vards}', '${item.date}', this)" style="background:#38a169; color:white; border:none; padding:5px 12px; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 4px rgba(56,161,105,0.3);">✅ OK</button>`;
+            }
+
+            html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #edf2f7; text-align:left;">
+                <div>
+                    <strong style="color:#2d3748; font-size:14px;">${item.vards}</strong> 
+                    <span style="color:#a0aec0; font-size:12px;">(${item.nodala})</span><br>
+                    <span style="color:#718096; font-size:12px;">${tag}</span>
+                </div>
+                <div>${rightSide}</div>
+            </div>`;
+        });
+
+        detailsDiv.innerHTML = html;
+    }
+
+    function approveBrivdiena(name, dateStr, btn) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = "⏳...";
+        btn.disabled = true;
+
+        fetch(webAppUrl, {
+            method: "POST", headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({ action: "approve_brivdiena", name: name, date: dateStr })
+        }).then(res => res.json()).then(res => {
+            if (res.status === "ok") {
+                loadAdminBrivdienas();
+            } else {
+                alert("Kļūda: " + res.msg);
+                btn.innerHTML = orig;
+                btn.disabled = false;
+            }
+        }).catch(err => {
+            alert("Savienojuma kļūda.");
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        });
     }
 
     function initAdminCalendar() {
         if(adminFpInstance) adminFpInstance.destroy();
         adminFpInstance = flatpickr("#admin-briv-calendar", {
             inline: true, locale: "lv",
+            defaultDate: selectedAdminDate || null,
             onDayCreate: function(dObj, dStr, fp, dayElem) {
                 const formatStr = fp.formatDate(dayElem.dateObj, "Y-m-d");
-                if (allBrivDataByDate[formatStr] && allBrivDataByDate[formatStr].length > 0) {
-                    dayElem.style.backgroundColor = "#ebf8ff"; dayElem.style.borderBottom = "3px solid #3182ce";
-                    dayElem.style.fontWeight = "bold"; dayElem.style.color = "#2b6cb0";
+                const items = allBrivDataByDate[formatStr];
+                if (items && items.length > 0) {
+                    const hasPending = items.some(it => {
+                        let s = (it.statuss || "").trim();
+                        return !(s === "OK" || s === "Atvaļinājums" || s.includes("(OK)") || s.toLowerCase().includes("grafik"));
+                    });
+                    if (hasPending) {
+                        dayElem.style.backgroundColor = "#feebc8"; 
+                        dayElem.style.borderBottom = "3px solid #dd6b20";
+                        dayElem.style.color = "#c05621";
+                    } else {
+                        dayElem.style.backgroundColor = "#c6f6d5"; 
+                        dayElem.style.borderBottom = "3px solid #38a169";
+                        dayElem.style.color = "#22543d";
+                    }
+                    dayElem.style.fontWeight = "bold";
                 }
             },
             onChange: function(selectedDates, dateStr, instance) {
-                const detailsDiv = document.getElementById('admin-briv-details');
-                const parts = dateStr.split('-'); const lvDate = `${parts[2]}.${parts[1]}.${parts[0]}`; 
-                if (allBrivDataByDate[dateStr] && allBrivDataByDate[dateStr].length > 0) detailsDiv.innerHTML = `<div style="margin-bottom:8px; color:#2b6cb0; font-weight:bold; font-size:15px;">📅 ${lvDate} atpūšas:</div>` + allBrivDataByDate[dateStr].join("");
-                else detailsDiv.innerHTML = `<div style="margin-bottom:8px; color:#718096; font-weight:bold;">📅 ${lvDate}</div><span style='color:#a0aec0;'>Šajā dienā neviens nav pieteicis brīvdienas.</span>`;
+                renderAdminDateDetails(dateStr);
             }
         });
-        document.getElementById('admin-briv-details').innerHTML = "<em>Noklikšķini uz zilajiem datumiem kalendārā, lai redzētu pieteikumus...</em>";
+        if (!selectedAdminDate) {
+            document.getElementById('admin-briv-details').innerHTML = "<em>Noklikšķini uz iekrāsotajiem datumiem kalendārā (🟠 gaida OK | 🟢 apstiprināts)...</em>";
+        }
     }
 
     function openInstructions() {
