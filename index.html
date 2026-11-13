@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MUPA Sistēma v11 (Gudrā nakts maiņa)</title>
     
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/lv.js"></script>
@@ -17,6 +18,21 @@
     
     <link rel="apple-touch-icon" href="MUPA_logo_web.png">
     <link rel="icon" type="image/png" href="MUPA_logo_web.png">
+
+    <!-- ONESIGNAL WEB PUSH INTEGRĀCIJA PRIKEŠ /mupa-app/ -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "0c83d380-d3a2-4046-bbe3-b4147b38cc3d",
+          serviceWorkerPath: "/mupa-app/OneSignalSDKWorker.js",
+          serviceWorkerParam: { scope: "/mupa-app/" },
+          notifyButton: { enable: true }
+        });
+      });
+    </script>
+
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
         .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 400px; margin: 20px auto; position: relative; }
@@ -498,7 +514,7 @@
     // ==========================================
     // 1. TAVI GALVENIE IESTATĪJUMI
     // ==========================================
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbykvOBi1GvkAobgUDAl_BjqjApMxZ5pqxDQlvDLeXcWR_ehfiUYVZBItqFDoHNJAOA/exec";
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbxYDTqIICaq5-9kUMTJpJ488WSaDNshoboOhlXWbF-K5FmikL6PpVImVS-sf0Il7e4/exec";
     
     const BARS = [
         { name: "Gust.", lat: 56.958376, lng: 24.129582, radius: 50 },
@@ -618,6 +634,13 @@
             document.getElementById('btn-admin').classList.remove('hidden');
         } else {
             document.getElementById('btn-admin').classList.add('hidden');
+        }
+
+        // Piesaistām darbinieka vārdu viņa telefona Web Push paziņojumiem!
+        if (window.OneSignalDeferred) {
+            OneSignalDeferred.push(async function(OneSignal) {
+                try { await OneSignal.login(currentUser); } catch(e) {}
+            });
         }
         
         loadInfoWall();
@@ -1323,7 +1346,6 @@
                     let totalHours = 0;
                     const wdNames = ["Svētdiena", "Pirmdiena", "Otrdiena", "Trešdiena", "Ceturtdiena", "Piektdiena", "Sestdiena"];
                     
-                    // Šodienas datums (bez pulksteņa), lai nerādītu pogu pagājušām dienām
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
 
@@ -1369,7 +1391,7 @@
                         let weekendBg = isDark ? "background: rgba(255, 255, 255, 0.08);" : "background: #edf2f7;";
                         let rowBg = isWeekend ? `${weekendBg} border-radius: 8px;` : "background: transparent;";
                         
-                        // ✅ POGA RĀDĀS TIKAI TAD, JA IR REĀLAS DARBA STUNDAS (> 0), IR LOKĀCIJA UN DIENA NAV PAGĀTNĒ
+                        // ✅ Poga "Atdot maiņu" rādās TIKAI tad, ja ir reālas darba stundas un diena nav pagātnē
                         let offerBtnHtml = "";
                         if (shiftHoursThisDay > 0 && item.location && isFutureOrToday) {
                             offerBtnHtml = `
