@@ -665,6 +665,106 @@
     function setupDashboard() {
         document.getElementById('welcome-text').innerText = "Sveiki, " + currentUser + "!";
         document.getElementById('shift-actions').classList.remove('hidden');
+        // ==========================================
+    // AUTOMĀTISKAIS SVĒTKU NOSKAŅAS (MOOD) MODULIS
+    // ==========================================
+    function applyHolidayMood() {
+        const now = new Date();
+        const m = now.getMonth() + 1; // 1 = Janvāris ... 11 = Novembris, 12 = Decembris
+        const d = now.getDate();
+        const welcomeEl = document.getElementById('welcome-text');
+        const dashCard = document.getElementById('dashboard-screen');
+        if (!welcomeEl || !dashCard) return;
+
+        let badge = "";
+        let topBorder = "";
+        let particles = [];
+
+        // 1. Patriotu nedēļa (11. - 18. novembris) un 4. maijs
+        if ((m === 11 && d >= 11 && d <= 18) || (m === 5 && d === 4)) {
+            badge = " 🇱🇻";
+            topBorder = "linear-gradient(90deg, #9E1B34 0%, #9E1B34 40%, #ffffff 40%, #ffffff 60%, #9E1B34 60%, #9E1B34 100%)";
+        }
+        // 2. Ziemassvētku laiks (15. - 30. decembris)
+        else if (m === 12 && d >= 15 && d <= 30) {
+            badge = " 🎄";
+            topBorder = "linear-gradient(90deg, #2f855a, #c53030, #2f855a)";
+            particles = ["❄️", "❅", "❆"];
+        }
+        // 3. Vecgada vakars un Jaunais gads (31. dec - 1. jan)
+        else if ((m === 12 && d === 31) || (m === 1 && d === 1)) {
+            badge = " 🥂✨";
+            topBorder = "linear-gradient(90deg, #d69e2e, #ecc94b, #d69e2e)";
+            particles = ["✨", "🎉", "⭐"];
+        }
+        // 4. Jāņi / Līgo (21. - 24. jūnijs)
+        else if (m === 6 && d >= 21 && d <= 24) {
+            badge = " 🌿🔥";
+            topBorder = "linear-gradient(90deg, #276749, #ecc94b, #dd6b20)";
+        }
+        // 5. Helovīns (28. - 31. oktobris)
+        else if (m === 10 && d >= 28 && d <= 31) {
+            badge = " 🎃";
+            topBorder = "linear-gradient(90deg, #dd6b20, #1a202c, #dd6b20)";
+            particles = ["🎃", "🦇", "👻"];
+        }
+        // 6. Lieldienas (aprīļa sākums / vidus)
+        else if (m === 4 && d >= 3 && d <= 6) {
+            badge = " 🐣🌷";
+            topBorder = "linear-gradient(90deg, #ecc94b, #68d391, #f687b3)";
+        }
+
+        // Pievienojam svētku simbolu sveicienam
+        if (badge && !welcomeEl.innerText.includes(badge.trim())) {
+            welcomeEl.innerText = "Sveiki, " + currentUser + "!" + badge;
+        }
+
+        // Pievienojam svētku lentīti kartītes augšpusē
+        let ribbon = document.getElementById('holiday-ribbon');
+        if (topBorder) {
+            if (!ribbon) {
+                ribbon = document.createElement('div');
+                ribbon.id = 'holiday-ribbon';
+                ribbon.style.cssText = "position:absolute; top:0; left:0; right:0; height:7px; border-radius:12px 12px 0 0; z-index:5;";
+                dashCard.prepend(ribbon);
+            }
+            ribbon.style.background = topBorder;
+        } else if (ribbon) {
+            ribbon.remove();
+        }
+
+        // Palaižam krītošās daļiņas (sniegu/konfeti), ja tās paredzētas
+        startHolidayParticles(particles);
+    }
+
+    function startHolidayParticles(symbols) {
+        let container = document.getElementById('holiday-particles');
+        if (container) container.remove();
+        if (!symbols || symbols.length === 0) return;
+
+        container = document.createElement('div');
+        container.id = 'holiday-particles';
+        container.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9998; overflow:hidden;";
+        document.body.appendChild(container);
+
+        if (!document.getElementById('holiday-anim-style')) {
+            const st = document.createElement('style');
+            st.id = 'holiday-anim-style';
+            st.innerHTML = `@keyframes mupaFall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 0.9; } 100% { transform: translateY(105vh) rotate(360deg); opacity: 0.2; } }`;
+            document.head.appendChild(st);
+        }
+
+        for (let i = 0; i < 14; i++) {
+            const p = document.createElement('div');
+            p.innerText = symbols[i % symbols.length];
+            const left = Math.random() * 100;
+            const dur = 7 + Math.random() * 8;
+            const delay = Math.random() * 7;
+            const size = 14 + Math.random() * 10;
+            p.style.cssText = `position:absolute; top:-30px; left:${left}%; font-size:${size}px; animation: mupaFall ${dur}s linear ${delay}s infinite; opacity:0.75;`;
+            container.appendChild(p);
+        }
+    }
         
         if (adminNames.includes(currentUser)) {
             document.getElementById('btn-admin').classList.remove('hidden');
